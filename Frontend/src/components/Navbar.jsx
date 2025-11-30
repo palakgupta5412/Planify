@@ -2,21 +2,26 @@ import React from 'react'
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { isLoggedIn } from '../store/login';
 import { profile } from '../store/login';
-
+import { plans } from '../store/plans';
+import { CiHeart } from "react-icons/ci";
+import { Link, NavLink } from 'react-router-dom';
 const Navbar = () => {
+
+    const [isSelected, setIsSelected] = React.useState("Explore");
   return (
-    <nav className=' flex h-12 items-center max-w-full justify-between mx-12 '>
+    <nav className='mb-12 mt-8 flex h-12 items-center max-w-full justify-between mx-12 '>
 
         <div className='w-1/4 pt-10 '>
             <img src='../public/planifyLogo.png' alt='logo' className='bg-cover bg-center hover:scale-105 overflow-hidden transition ease-in-out duration-300' />
         </div>
         
         <div className='w-1/2 flex justify-center'>
-            <ul className='flex gap-16'>
-                <li className='hover:text-white hover:scale-105 overflow-hidden transition ease-in-out duration-300'><a href="#">Explore</a></li>
-                <li className='hover:text-white hover:scale-105 overflow-hidden transition ease-in-out duration-300 flex items-center text-[#FAE5D8]'><a href="#">Categories </a> <RiArrowDropDownLine size={32}  /> </li>
-                <li className='hover:text-white hover:scale-105 overflow-hidden transition ease-in-out duration-300'><a href="#">Add a new Plan</a></li>
-            </ul>
+            <div className='flex gap-16'>
+                <NavLink onClick={()=>setIsSelected("Explore")} to="/" className={`hover:text-white hover:scale-105 overflow-hidden transition ease-in-out duration-300 ${isSelected === "Explore" ? "underline text-white text-md": ""}`}><a href="#">Explore</a></NavLink>
+                <NavLink onClick={()=>setIsSelected("Statistics")} to="/categories" className={`hover:text-white hover:scale-105 overflow-hidden transition ease-in-out duration-300 flex items-center text-[#FAE5D8] ${isSelected === "Statistics" ? "underline text-white": ""}`}><a href="#">Statistics </a> </NavLink>
+                <NavLink onClick={()=>setIsSelected("Add a new Plan")} to="/add" className={`hover:text-white hover:scale-105 overflow-hidden transition ease-in-out duration-300 ${isSelected === "Add a new Plan" ? "underline text-white": ""}`}><a href="#">Add a new Plan</a></NavLink>
+                <NavLink className='hover:text-white hover:scale-105 overflow-hidden transition ease-in-out duration-300'><a className='hover:text-red-500' href="#"><CiHeart size={26}/></a></NavLink>
+            </div>
         </div>
 
         
