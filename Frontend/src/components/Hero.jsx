@@ -14,7 +14,7 @@ const Hero = () => {
     const [ active , setActive] = useState("All");
 
   return (
-    <div className='w-full grayscale min-h-screen flex gap-8 pt-24 px-16 flex '>
+    <div className='w-full grayscale min-h-screen flex gap-8 pt-24 px-16 '>
         {/* <div></div>  */}
         <div className='w-full min-h-screen flex flex-col gap-2'>
 

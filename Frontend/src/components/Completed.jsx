@@ -22,7 +22,7 @@ const Completed = () => {
     console.log(percentage);
 
   return (
-    <div className='w-full h-[20vh] flex flex-col justify-center items-center'>
+    <div className='z-10 w-full h-[20vh] flex flex-col justify-center items-center'>
         <h3 className='flex items-left w-[80vw] pb-2 text-xl'>{`You have completed ${percentage}% of your plans`}</h3>
         <div className='rounded-md flex flex-col justify-center items-center backdrop-blur-md bg-white/10 w-[80vw] h-[20vh] px-20'>
             <div className='h-[3px] bg-white w-full'>

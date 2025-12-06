@@ -1,17 +1,17 @@
 import React from 'react'
 import { Form, Outlet } from 'react-router-dom'
-import Button from '../components/button'
+import Button from '../components/Button'
 
 const Add = () => {
   return (
     <div className='h-screen w-full p-1'>
 
-      <div className="p-10 max-h-screen w-full h-full bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px]">
+      <div className="p-10 max-h-screen w-full h-full  bg-[size:40px_40px]">
         <div className='relative w-full h-full flex flex-col gap-10 justify-start items-start'>
           <div className='h-1/3 w-full flex justify-between gap-10 '>
             <div className='w-1/2 h-full border-2 border-[#DFB6B2] rounded-md py-4 px-8 flex flex-col gap-2 justify-center'>
               <h2 className='text-lg font-semibold'>What are you excited to do next?</h2>
-              <input type="text" placeholder='Type here...' className='p-1 w-full h-full bg-transparent backdrop-blur-md bg-white/5 h-10' />
+              <input type="text" placeholder='Type here...' className='p-1 w-full backdrop-blur-md bg-white/5 h-10' />
             </div>
             <div className='w-1/2 h-full border-2 border-[#DFB6B2] rounded-md py-4 px-8 flex flex-col gap-2 justify-center'>
               <h2 className='text-lg font-semibold'>Where does this plan belong?</h2>
