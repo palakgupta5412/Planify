@@ -1,12 +1,7 @@
 import React from 'react'
-import { RiArrowDropDownLine } from "react-icons/ri";
 import { isLoggedIn } from '../store/login';
 import { profile } from '../store/login';
-import { plans } from '../store/plans';
-import { CiHeart } from "react-icons/ci";
 import { Link, NavLink } from 'react-router-dom';
-import { MdArrowOutward } from "react-icons/md";
-import Button from '../components/Button';
 import { LuCalendarCheck } from "react-icons/lu";
 import { RiLogoutBoxRLine } from "react-icons/ri";
 import { IoKey } from "react-icons/io5";
@@ -86,8 +81,6 @@ const Navbar = () => {
             <h2 className='hover:text-white hover:scale-105 overflow-hidden text-md transition ease-in-out duration-300 font-semibold bg-white/10 py-1 px-3 rounded-md  backdrop-blur-lg'>Signup</h2>
         </div>    
         )}
-        
-
     </nav>
   )
 }
