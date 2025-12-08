@@ -4,6 +4,13 @@ import { CiEdit } from "react-icons/ci";
 import { AiOutlineDelete } from "react-icons/ai";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
 
+import { IoFastFoodOutline } from "react-icons/io5";
+import { IoIosDoneAll } from "react-icons/io";
+import { TbBrandFunimation } from "react-icons/tb";
+import { IoCarOutline } from "react-icons/io5";
+import { MdOutlinePlace } from "react-icons/md";
+import { RiShoppingCart2Line } from "react-icons/ri";
+
 const categories = ["All" , "Food" , "Experiences" , "Travel" , "Places" , "Shopping"]
 
 const lanscape = ['../public/Grid/1.jpg' , '../public/Grid/5.jpg' , '../public/Grid/7.jpg' , '../public/Grid/2.jpg' ]
@@ -13,6 +20,13 @@ const Hero = () => {
     
     const [ active , setActive] = useState("All");
 
+    const categoryImage = (category) => {
+        if(category == "Food") return IoFastFoodOutline;
+        else if(category == "Experiences") return TbBrandFunimation;
+        else if(category == "Travel") return IoCarOutline;
+        else if(category == "Places") return MdOutlinePlace;
+        else if(category == "Shopping") return RiShoppingCart2Line;
+    }
   return (
     <div className='w-full grayscale min-h-screen flex gap-8 pt-24 px-16 '>
         {/* <div></div>  */}
@@ -29,13 +43,15 @@ const Hero = () => {
             </div>
             <div className='flex flex-col gap-2 border-2 w-full p-1 border-zinc-400 rounded-md'>
                 {plans.map((plan)=>{
+                    const Icon = categoryImage(plan.category);
                     if(plan.category == active || active == "All")
                     return (
                         <div className={`hover:bg-white/20 flex justify-between backdrop-blur-md bg-white/10 px-8 py-4 rounded-md`}>
-                            <div className=''>
+                            <div className='w-1/2'>
                                 <h2 className='text-lg font-semibold'>{plan.name}<span className={`text-white ml-1 text-[2px] ${active == "All" ? "" : "hidden"}`}>{`(${plan.category})`}</span></h2>
                                 <p className='text-sm text-zinc-300'>{plan.description}</p>
                             </div>
+                            <div className='h-full flex justify-center items-center'><Icon size={24}/></div>
                             <div className='flex items-center gap-3 text-xl'>
                                 <button className='hover:text-white hover:font-bold'>
                                     <CiEdit />

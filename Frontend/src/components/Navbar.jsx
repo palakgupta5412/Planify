@@ -7,6 +7,10 @@ import { CiHeart } from "react-icons/ci";
 import { Link, NavLink } from 'react-router-dom';
 import { MdArrowOutward } from "react-icons/md";
 import Button from '../components/Button';
+import { LuCalendarCheck } from "react-icons/lu";
+import { RiLogoutBoxRLine } from "react-icons/ri";
+import { IoKey } from "react-icons/io5";
+import { CgProfile } from "react-icons/cg";
 
 const Navbar = () => {
 
@@ -45,14 +49,12 @@ const Navbar = () => {
                         <a href="#">Add a new Plan</a>
                 </NavLink>
                 <NavLink 
+                    to ="/calendar"
                     className='hover:text-white hover:scale-105  transition ease-in-out duration-300'>
-                        <div className='group relative flex flex-col justify-center items-center text-center'>
-                            <a className='hover:text-red-500' href="#">
-                                <CiHeart size={26}/>
+                        <div className=' flex flex-col justify-center items-center text-center'>
+                            <a className='hover:text-red-400' href="/calendar">
+                                <LuCalendarCheck size={26}/>
                             </a>
-                            <div>
-                                <h4 className='absolute text-xs text-zinc-400 opacity-0 invisible group-hover:opacity-100 group-hover:visible backdrop-blur-sm bg-white/10 '>Wishlist</h4>
-                            </div>
                         </div>
                 </NavLink>
             </div>
@@ -72,9 +74,9 @@ const Navbar = () => {
                         <h4 className='font-bold text-zinc-400 mb-3 border-1 border-zinc-900'>{profile.email}</h4>
                     </div>
                     <div className='flex flex-col gap-1 font-semibold'>
-                        <a className='py-1 px-3 w-full backdrop-blur-md text-white text-sm cursor-pointer flex gap-1 items-center'>View Profile <MdArrowOutward /></a>
-                        <a className='py-1 px-3 w-full backdrop-blur-md text-white text-sm cursor-pointer flex gap-1 items-center'>Change Password <MdArrowOutward /></a>
-                        <a><a className='py-1 px-3 w-full backdrop-blur-md text-red-700 text-sm cursor-pointer flex gap-1 items-center'>Logout <MdArrowOutward /></a></a>
+                        <a className='py-1 px-3 w-full backdrop-blur-md text-white text-sm cursor-pointer flex gap-2 items-center'><CgProfile /> View Profile </a>
+                        <a className='py-1 px-3 w-full backdrop-blur-md text-white text-sm cursor-pointer flex gap-2 items-center'><IoKey /> Change Password </a>
+                        <a><a className='py-1 px-3 w-full backdrop-blur-md text-red-700 text-sm cursor-pointer flex gap-2 items-center'><RiLogoutBoxRLine /> Logout </a></a>
                     </div>
                 </div>
             </div>
