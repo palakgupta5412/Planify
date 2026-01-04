@@ -1,71 +1,331 @@
 import React from 'react'
-import { Form, Outlet } from 'react-router-dom'
+import { useState , useEffect , } from 'react'
+import { useParams } from 'react-router-dom'
 import Button from '../components/Button'
+import axios from 'axios'
+import { useNavigate } from 'react-router-dom';
+import { IoFastFoodOutline } from "react-icons/io5";
+import { TbBrandFunimation } from "react-icons/tb";
+import { RiShoppingCart2Line } from "react-icons/ri";
+import { LuNotebookPen } from "react-icons/lu";
+import { RiPlaneLine } from "react-icons/ri";
+import { MdOutlineVideoCameraBack } from "react-icons/md";
+import { TbPhoto } from "react-icons/tb";
+import { BsCameraVideo } from "react-icons/bs";
+import { BsStar } from "react-icons/bs";
+import { GrCalendar } from "react-icons/gr";
+import { FaRegClock } from "react-icons/fa";
+import { MdSecurityUpdateGood } from "react-icons/md";
+
 
 const Add = () => {
+
+  const { id } = useParams();
+  const categories = ["Food", "Experiences", "Travel", "Shopping" , "Places"] ;
+  const navigate = useNavigate();
+  const MAX_SIZE = 2 * 1024 * 1024; 
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [images , setImages] = useState([]) ;
+  const [previews , setPreviews] = useState([]) ;
+
+  const [form , setForm] = React.useState({
+    name : '' ,
+    description : '' ,
+    category : '' ,
+    images : [] ,
+    createdAt : '' ,
+    completedAt : '' ,
+    isDone : false
+  }) ;
+
+  useEffect(() => {
+    if (!id) return; // create mode
+
+    const loadPlan = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/planify/v1/plans/getPlanById/${id}`);
+        console.log("Response while fetching plan:", res);
+        
+        const p = res.data.data;
+
+        setForm({
+          name: p.name,
+          description: p.description,
+          category: p.category,
+          createdAt: p.createdAt,
+          completedAt: p.completedAt,
+          images: p.images || [],
+          isDone: p.isDone
+        });
+
+        setSelectedCategory(p.category);
+        setImages(p.images);
+      } catch (err) {
+        console.error("Error fetching plan:", err);
+      }
+    };
+
+    loadPlan();
+  }, [id]);
+
+const handleDrop = (e) => {
+  e.preventDefault();
+  const files = Array.from(e.dataTransfer.files);
+  setImages(prev => [...prev , ...files] )
+  const previewURLs = files.map(file =>
+    URL.createObjectURL(file)
+  );
+  setPreviews(prev => [...prev, ...previewURLs]);
+};
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  // const handleSubmit = async(e) => {
+  //   e.preventDefault();
+  //   const planData = {
+  //     ...form,
+  //     category: selectedCategory,
+  //     images: images,
+  //     completedAt : form.completedAt || null
+  //   };
+
+  //   try{
+  //     if (id) {
+  //       // Edit mode
+  //       await axios.put(`http://localhost:5000/planify/v1/plans/editPlan/${id}`, planData)
+  //       .then((response) => {
+  //         console.log("Plan updated successfully:", response.data);
+  //         setTimeout(() => {
+  //           navigate('/explore'); // Change to any route
+  //         }, 800);
+  //         alert("Plan updated successfully!");
+  //       })
+  //       .catch((error) => {
+  //         console.error("Error updating plan:", error);
+  //       });
+  //     }
+  //     else{
+  //       // Create mode
+  //       await axios.post("http://localhost:5000/planify/v1/plans/createPlan", planData)
+  //       .then((response) => {
+  //         console.log("Plan created successfully:", response.data);
+
+  //         setTimeout(() => {
+  //           navigate('/explore'); // Change to any route
+  //         }, 800);
+  //         alert("Plan created successfully!");
+  //       })
+  //       .catch((error) => {
+  //         console.error("Error creating plan:", error);
+  //       });
+  //         }
+  //     }
+  //     catch(err){
+  //       console.error("Error in submitting plan:", err);
+  //     }
+  // }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+
+    images.forEach(file => {
+      if (file.size > MAX_SIZE) {
+        alert(`${file.name} is larger than 2MB`);
+        return;
+      }
+      formData.append("images", file);
+    });
+
+    formData.append("name", form.name);
+    formData.append("description", form.description);
+    formData.append("category", selectedCategory);
+    formData.append("createdAt", form.createdAt);
+    if (form.completedAt) {
+      formData.append("completedAt", form.completedAt);
+    }
+    formData.append("isDone", form.isDone);
+
+    console.log("Form Data" , formData);
+    await axios.post(
+      "/planify/v1/plans/createPlan",
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+
+    console.log("Plan created successfully! and form data : " , formData);
+
+    setTimeout(() =>  {
+      navigate('/explore'); // Change to any route
+    }, 800);
+    alert("Plan created successfully!");
+
+  };
+
+
+  const handleFileSelect = (e) => {
+
+    const files = Array.from(e.target.files);
+    setImages(prev => [...prev , ...files] )
+    const previewURLs = files.map(file =>
+        URL.createObjectURL(file)
+    );
+    setPreviews(prev => [...prev, ...previewURLs]);
+  
+  };
+
   return (
-    <div className='h-screen w-full p-1'>
+    <div className='min-h-screen pb-10 w-full px-20 mt-5 flex justify-center relative'>
+      
+      <IoFastFoodOutline size={120} className='-rotate-45 absolute top-10 left-10 opacity-5' />
+      <TbBrandFunimation size={120} className='absolute top-72 left-24 opacity-5' />
+      <RiShoppingCart2Line size={120} className='absolute top-12 right-44 rotate-6 opacity-5' />
+      <LuNotebookPen size={120} className='absolute top-80 right-10 -rotate-12 opacity-5' />
+      <RiPlaneLine size={120} className='-rotate-12 absolute bottom-96 left-64 opacity-5' />
+      <MdOutlineVideoCameraBack size={120} className='rotate-45 absolute bottom-44 left-10 opacity-5' />
+      <TbPhoto size={120} className='rotate-12 absolute bottom-36 right-10 opacity-5' />
+      <BsCameraVideo size={120} className='rotate-12 absolute top-1/2 left-1/2 opacity-5' />
+      <BsStar size={120} className='-rotate-30 absolute top-28 left-1/4 opacity-5' />
+      <GrCalendar size={120} className='rotate-15 absolute bottom-1/3 left-1/3 opacity-5' />
+      <FaRegClock size={120} className='-rotate-15 absolute top-64 right-72 font-bold opacity-5' />
+      <MdSecurityUpdateGood size={120} className='rotate-0 absolute bottom-80 right-56 opacity-5' />
 
-      <div className="p-10 max-h-screen w-full h-full  bg-[size:40px_40px]">
-        <div className='relative w-full h-full flex flex-col gap-10 justify-start items-start'>
-          <div className='h-1/3 w-full flex justify-between gap-10 '>
-            <div className='w-1/2 h-full border-2 border-[#DFB6B2] rounded-md py-4 px-8 flex flex-col gap-2 justify-center'>
-              <h2 className='text-lg font-semibold'>What are you excited to do next?</h2>
-              <input type="text" placeholder='Type here...' className='p-1 w-full backdrop-blur-md bg-white/5 h-10' />
+      <div className='backdrop-blur-md bg-white/10 p-10 rounded-md w-1/2 h-full flex flex-col justify-center gap-4'>
+        <h2 className='text-xl text-left font-bold text-white'>Let's Planify your next Adventure!!</h2>
+          <p className='text-red-400 text-xs'> * indicates required fields  </p>
+
+        <form onSubmit={handleSubmit}  className='h-full flex flex-col gap-5'>
+          
+          <div className='w-full flex flex-col gap-0'>
+            <p className='text-left m-0 p-0 ' >Plan Name<span className='text-red-400 '> *</span></p>
+            <input 
+              type='text' 
+              name='name' 
+              value={form.name}
+              placeholder='Enter the plan title here' 
+              className='text-gray-300 p-2 border border-gray-300 bg-transparent rounded-md w-full'
+              required
+              onChange={(e)=>setForm({...form , name : e.target.value})}
+            />
+          </div>
+
+          <div className='w-full flex flex-col gap-0 mt-4 '>
+            <p className='text-left m-0 p-0 ' >Description</p>
+            <textarea 
+              name='description' 
+              value={form.description}
+              placeholder='Description' 
+              className='p-2 border border-gray-300 bg-transparent rounded-md w-full h-32'
+              onChange={(e)=>setForm({...form , description : e.target.value})}
+              maxLength={300}
+            />
+            <p className='text-right text-zinc-400 m-0 p-0'>{form.description.length}/300</p>
+          </div>
+          
+          <div>
+            <p className=' text-left m-0 p-0' >Select Category <span className='text-red-400 '> *</span></p>
+            <div className="p-2 bg-transparent rounded-md flex flex-wrap gap-2">
+              {categories.map((cat) => (
+                <div
+                  key={cat}
+                  onClick={() => {setSelectedCategory(cat); setForm({...form , category : cat})}}
+                  className={`
+                    cursor-pointer px-2 py-1 rounded-full border
+                    transition-all duration-200 text-sm
+
+                    ${selectedCategory === cat 
+                      ? "bg-[#f49494]  shadow-md font-bold scale-105" 
+                      : "bg-transparent text-white"} 
+                  `}
+                >
+                  {cat}
+                </div>
+              ))}
             </div>
-            <div className='w-1/2 h-full border-2 border-[#DFB6B2] rounded-md py-4 px-8 flex flex-col gap-2 justify-center'>
-              <h2 className='text-lg font-semibold'>Where does this plan belong?</h2>
-              <select id="category"
-              className="w-full px-4 py-2 bg-transparent text-[#FAE5D8] border-b-2 border-white/5 outline-none focus:border-[#A8A8A8] appearance-none"
+          </div>
+          
+          <div className='w-full flex gap-2 '>
+            <div className='flex flex-col w-1/2'>
+            <p className='text-left m-0 p-0  ' >Creation Date<span className='text-red-400 '> *</span></p>
+            <input 
+              type='date' 
+              name='createdAt' 
+              value={form.createdAt}
+              className='p-2 border border-gray-300 bg-transparent rounded-md'
+              onChange={(e)=>setForm({...form , createdAt : e.target.value})}
+            />
+            <div className='flex items-center gap-1 justify-start'>
+              <input 
+              type = 'checkbox'
+              name = 'today date'
+              className='rounded-md'
+              onChange={(e)=>setForm({...form , createdAt : new Date().toISOString().split('T')[0]})}
+            /> Use today's date
+            </div>
+          </div>
+
+          <div className='flex flex-col w-1/2'>
+            <p className='text-left m-0 p-0  ' >Completion Date</p>
+            <input 
+              type='date' 
+              value={form.completedAt}
+              name='completedAt' 
+              className='p-2 border border-gray-300 bg-transparent rounded-md'
+              onChange={(e)=>setForm({...form , completedAt : e.target.value})}
+            />
+            <div className='flex items-center gap-1 justify-start'>
+              <input 
+              type = 'checkbox'
+              name = 'today date'
+              className='rounded-md'
+              onChange={(e)=>setForm({...form , completedAt : new Date().toISOString().split('T')[0]})}
+            /> Use today's date
+            </div>
+          </div>
+          </div>
+          
+          <div>
+            <p className='text-left m-0 p-0' >Upload Images</p>
+              <input 
+                type="file" 
+                multiple
+                id="fileInput"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+
+              <div
+                onClick={() => document.getElementById("fileInput").click()}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                className="text-zinc-300 w-full h-40 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center"
               >
-                <option value="" disabled selected className="text-black bg-[#FAE5D8]">
-                  Select category
-                </option>
-                <option value="food" className="text-black bg-[#FAE5D8] hover:bg-[#DFB6B2]">Food</option>
-                <option value="places" className="text-black bg-[#FAE5D8] hover:bg-[#DFB6B2]">Places</option>
-                <option value="shopping" className="text-black bg-[#FAE5D8]">Shopping</option>
-                <option value="activities" className="text-black bg-[#FAE5D8]">Experiences</option>
-                <option value="travel" className="text-black bg-[#FAE5D8]">Travel</option>
-              </select>
-            </div>
+                Drag and drop an image here, or click to select a file
+              </div>
           </div>
-          <div className='h-1/3 w-full flex justify-between gap-10'>
-            <div className='w-1/2 h-full border-2 border-[#DFB6B2] rounded-md py-4 px-8 flex flex-col gap-2 justify-center '>
-              <h2 className='text-lg font-semibold'>Tell more about it...</h2>
-              <textarea type="text" placeholder='Type here...' className='resize-none p-1 w-full h-full bg-transparent backdrop-blur-md bg-white/5 h-10' />
-            </div>
-            <div className='w-1/2 h-full border-2 border-[#DFB6B2] rounded-md py-4 px-8 flex flex-col gap-2 justify-center'>
-              <h2 className='text-lg font-semibold'>Is this moment already lived?</h2>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="status"
-                  value="pending"
-                  className="accent-[#FAE5D8]"
-                />
-              To be done
-              </label>
+          <div className="flex gap-2 flex-wrap">
+            {previews.map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                className="w-10 h-10 object-cover rounded"
+              />
+            ))}
+          </div>   
 
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="status"
-                  value="completed"
-                  className="accent-[#FAE5D8]"
-                />
-                Done
-              </label>
-            </div>
+          <div>
+            <input checked={form.isDone} name='isDone' onChange={(e)=>setForm({...form , isDone : e.target.checked})} type='checkbox' className='mt-4' /> Tick this box if this plan is already completed.
           </div>
-          <div className='w-28 rounded-full bg-contain absolute top-36  left-[43vw]'>
-            <img src='../public/plan.png' />
-          </div>
-          <div className='w-full flex justify-between items-center '>
-            <Button text="Save New Plan"/>
-          </div>
-        </div>
+
+          <Button type='submit' text={id?'Update Plan':'Create Plan'} className='mt-4 w-1/3' />
+          {/* <p className='text-red-400 text-xs'> * indicates required fields  </p> */}
+        </form>
       </div>
-
+      
     </div>
 
   )

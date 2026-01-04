@@ -25,7 +25,7 @@ const Home = () => {
 
       {/* Features */}
       <div className='w-full min-h-screen mt-20 px-32 mb-20'>
-        <h2 className='flex gap-2 text-2xl  items-center'><FaPenToSquare /> Features</h2>
+        <h2 className='flex gap-2 text-2xl  items-center text-white'><FaPenToSquare /> Features</h2>
         <h4 className='mt-8 text-lg'>Planify helps you organize every idea — add plans, sort them by category, mark them as completed, explore your statistics, and relive your moments.</h4>
         <div className='flex flex-wrap gap-20 justify-center items-center '>
           {

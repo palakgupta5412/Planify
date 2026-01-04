@@ -1,24 +1,44 @@
 import React, { useState } from 'react'
-import { plans } from '../store/plans'
 import { CiEdit } from "react-icons/ci";
+import { fetchPlans } from '../store/plans';
 import { AiOutlineDelete } from "react-icons/ai";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
-
 import { IoFastFoodOutline } from "react-icons/io5";
 import { IoIosDoneAll } from "react-icons/io";
 import { TbBrandFunimation } from "react-icons/tb";
 import { IoCarOutline } from "react-icons/io5";
 import { MdOutlinePlace } from "react-icons/md";
 import { RiShoppingCart2Line } from "react-icons/ri";
+import { useEffect } from 'react';
+import { RiArrowDropDownLine } from "react-icons/ri";
+import axios from 'axios';
+import Button from './Button';
+import { useNavigate } from 'react-router-dom';
 
-const categories = ["All" , "Food" , "Experiences" , "Travel" , "Places" , "Shopping"]
-
-const lanscape = ['../public/Grid/1.jpg' , '../public/Grid/5.jpg' , '../public/Grid/7.jpg' , '../public/Grid/2.jpg' ]
-const portrait = ['../public/Grid/3.jpg' , '../public/Grid/4.jpg' , '../public/Grid/6.jpg' , '../public/Grid/8.jpg' ]
- 
 const Hero = () => {
+
+    const navigate = useNavigate();
     
     const [ active , setActive] = useState("All");
+    const categories = ["All" , "Food" , "Experiences" , "Travel" , "Places" , "Shopping"]
+
+    const [plans, setPlans] = useState([]);
+    const [filterStatus , setFilterStatus] = useState("All");
+    // const [filteredPlans , setFilteredPlans] = useState([...plans]) ;
+
+    useEffect(() => {
+        const getPlans = async () => {
+            try{
+                const data = await axios.get('/planify/v1/plans/getAllPlans');
+                setPlans(data.data.data.plans);
+            }
+            catch(err){
+                console.log("Error in getting plans" , err);
+                setPlans([]);
+            }
+        };
+        getPlans();
+    }, []);
 
     const categoryImage = (category) => {
         if(category == "Food") return IoFastFoodOutline;
@@ -27,45 +47,131 @@ const Hero = () => {
         else if(category == "Places") return MdOutlinePlace;
         else if(category == "Shopping") return RiShoppingCart2Line;
     }
-  return (
-    <div className='w-full grayscale min-h-screen flex gap-8 pt-24 px-16 '>
-        {/* <div></div>  */}
-        <div className='w-full min-h-screen flex flex-col gap-2'>
 
-            <div className='flex gap-2 '>
-                {categories.map((category)=>{
-                    return (
-                        <div onClick={()=>{setActive(category)}}  className={`${category==active ? "bg-zinc-400 text-white rounded-sm" : "rounded-md"} backdrop-blur-md bg-[#DFB6B2]/10 cursor-pointer bg-white/10 px-3 py-1`}>
-                            <h2>{category}</h2>
-                        </div>
-                    )
-                })}
+    const filteredPlans = 
+    plans.filter(plan => {
+        if (filterStatus === "Completed") return plan.isDone === true;
+        if (filterStatus === "Not Completed") return plan.isDone === false;
+        return true;
+    });
+
+    const deletePlan = async (id) => {
+        try {
+            await axios.delete(`/planify/v1/plans/deletePlan/${id}`);
+            setPlans(prev => prev.filter(plan => plan._id !== id));
+            alert("Plan Deleted Successfully");
+        } catch (error) {
+            console.error("Error deleting plan:" , error);
+        }
+    }
+
+    const donePlan = async (id) => {
+        try {
+            const res = await axios.patch(`/planify/v1/plans/markAsDone/${id}`);
+
+            setPlans(prev =>
+                prev.map(p =>
+                    p._id === id ? { ...p, isDone: true } : p
+                )
+            );
+            alert("Plan marked as done!");
+            return res;
+        } catch (error) {
+            console.error("Error marking plan as done:", error);
+        }
+    }
+
+    const deleteAllPlans = async () => {
+        try {
+            await axios.delete(`/planify/v1/plans/deleteAllPlans`);
+            setPlans([]);
+            alert("All Plans Deleted Successfully");
+        } catch (error) {
+            console.error("Error deleting all plans:", error);
+        }
+    }
+
+    
+
+  return (
+    <div className='w-full mb-10 grayscale min-h-screen gap-8 pt-20 px-16 '>
+        <div className='w-full flex flex-col gap-2 mb-10 '>
+
+            <div >
+                <div className='flex justify-between'>
+                    <div className='flex gap-2 '>
+                        {categories.map((category)=>{
+                        return (
+                            <div onClick={()=>{setActive(category)}}  className={`${category==active ? "bg-zinc-400 text-white rounded-sm" : "rounded-md"} backdrop-blur-md cursor-pointer bg-white/10 px-3 py-1`}>
+                                <h2>{category} (
+                                    {category === "All" ? 
+                                    plans.length : 
+                                    plans.filter(plan => plan.category.includes(category)).length})
+                                </h2>
+                            </div>
+                        )
+                        })}
+                    </div>
+                    <div className='flex gap-2 justify-center items-center' >
+                        <select onChange={(e)=>setFilterStatus(e.target.value)} className='backdrop-blur-md bg-white/10 text-white text-center px-1 py-1 rounded-md'>
+                            <option 
+                                className='text-black bg-white/10 backdrop-blur-lg ' 
+                                value="All"
+                            >
+                                Sort by Status
+                            </option>
+
+                            <option 
+                                className='text-black bg-white/10 backdrop-blur-lg ' 
+                                value="Completed"
+                            >
+                                Completed
+                            </option>
+                            
+                            <option 
+                                className='text-black bg-white/10 backdrop-blur-lg ' 
+                                value="Not Completed"
+                            >
+                                Not Completed
+                            </option>
+
+                        </select>
+                    </div>
+                </div>
             </div>
             <div className='flex flex-col gap-2 border-2 w-full p-1 border-zinc-400 rounded-md'>
-                {plans.map((plan)=>{
+                {filteredPlans.map((plan)=>{
                     const Icon = categoryImage(plan.category);
                     if(plan.category == active || active == "All")
                     return (
-                        <div className={`hover:bg-white/20 flex justify-between backdrop-blur-md bg-white/10 px-8 py-4 rounded-md`}>
+                        <div key={plan._id} className={`hover:bg-white/20 flex justify-between backdrop-blur-md bg-white/10 px-8 py-4 rounded-md items-center`}>
                             <div className='w-1/2'>
                                 <h2 className='text-lg font-semibold'>{plan.name}<span className={`text-white ml-1 text-[2px] ${active == "All" ? "" : "hidden"}`}>{`(${plan.category})`}</span></h2>
                                 <p className='text-sm text-zinc-300'>{plan.description}</p>
                             </div>
                             <div className='h-full flex justify-center items-center'><Icon size={24}/></div>
                             <div className='flex items-center gap-3 text-xl'>
-                                <button className='hover:text-white hover:font-bold'>
+                                <button onClick={()=>navigate(`/add/${plan._id}`)} className='hover:text-white hover:font-bold'>
                                     <CiEdit />
                                 </button>
-                                <button onClick={()=>{deletePlan(plan.id)}} className='hover:text-white hover:font-bold'>
+                                <button onClick={()=>{deletePlan(plan._id)}} className='hover:text-white hover:font-bold'>
                                     <AiOutlineDelete />
                                 </button>
-                                <button className='hover:text-white hover:font-extrabold'>
+                                <button  onClick={()=>donePlan(plan._id)}  className='hover:text-white hover:font-extrabold'>
                                     <IoCheckmarkDoneOutline />
                                 </button>
                             </div>
                         </div>
             )})}
             </div>
+        
+        </div>
+        <div className='w-full flex justify-end gap-4 mt-10'>
+            <Button text="Delete All Plans" onClick={deleteAllPlans}/>
+            <Button text="Add new Plan" onClick={()=>(navigate("/add"))}/>
+        </div>
+        <div className='h-10 w-full flex justify-center mt-10 text-xl font-sans items-center'>
+            ~ {plans.length} plans created so far - Keep Going!! ❤️ ~
         </div>
     </div>
   )

@@ -5,3 +5,30 @@
 body{
     font-family: "PT Sans", sans-serif;
 }
+
+.neumorphic {
+  background: #e7dce3cf;
+  border-radius: 20px;
+  padding: 20px;
+
+  box-shadow: 
+    8px 8px 15px #a45a5a,    /* dark shadow */
+    -8px -8px 15px #e89c9c;  /* light shadow */
+}
+
+@keyframes pie {
+  from {
+    background: conic-gradient(#ffffff 0%, #ffffff 0%);
+  }
+  50% {
+    background: conic-gradient(#5B2F6E 0%, #DFB6B2 0%);
+  }
+  to {
+    background: conic-gradient(#5B2F6E var(--percentage), #DFB6B2 0);
+  }
+}
+
+.animate-pie {
+  animation: pie 2s ease-in-out forwards ;
+}
+

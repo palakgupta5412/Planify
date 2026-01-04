@@ -1,0 +1,1 @@
+export const db_name = 'planify_db';

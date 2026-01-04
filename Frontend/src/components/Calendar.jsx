@@ -1,10 +1,20 @@
-import React, { useState } from "react";
-import { plans } from "../store/plans";
+import React, { useState , useEffect } from "react";
+import { fetchPlans } from "../store/plans";
 import categories from "../constants/categories";
+import axios from "../utils/axiosConfig.js";
 
 const Calendar = ({ year = 2025 }) => {
   const [page, setPage] = useState(1);
-
+  const [plans , setPlans] = useState([]);
+  
+  useEffect(() => {
+    const getPlans = async () => {
+      const data = await axios.get('/planify/v1/plans/getAllPlans');
+      setPlans(data.data.data.plans);
+    };
+    getPlans();
+  }, []);
+  
   const icons = {
     "Food": "🍜" ,
     "Experiences": "🎉",
@@ -12,11 +22,24 @@ const Calendar = ({ year = 2025 }) => {
     "Places": "📍",
     "Shopping": "🛒"
   }
-  // Convert plan list to { "2025-02-04": "🍽" }
+
+  // Changinf dates format 
   const iconMap = {};
-  plans.forEach(p => {
-    iconMap[p.completedAt] = icons[p.category];
-  });
+plans.forEach(p => {
+    if (!p.completedAt) return; // skip empty/null dates
+
+    const date = new Date(p.completedAt);
+
+    if (isNaN(date)) return; // skip invalid dates
+
+    const normalized = date.toISOString().split("T")[0];
+    iconMap[normalized] = icons[p.category];
+});
+
+  // Convert plan list to { "2025-02-04": "🍽" }
+  // plans.forEach(p => {
+  //   iconMap[p.completedAt] = icons[p.category];
+  // });
 
   const monthsPage1 = [0, 1, 2, 3, 4, 5];
   const monthsPage2 = [6, 7, 8, 9, 10, 11];
