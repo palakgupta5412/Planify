@@ -83,50 +83,7 @@ const handleDrop = (e) => {
     e.stopPropagation();
   };
 
-  // const handleSubmit = async(e) => {
-  //   e.preventDefault();
-  //   const planData = {
-  //     ...form,
-  //     category: selectedCategory,
-  //     images: images,
-  //     completedAt : form.completedAt || null
-  //   };
-
-  //   try{
-  //     if (id) {
-  //       // Edit mode
-  //       await axios.put(`http://localhost:5000/planify/v1/plans/editPlan/${id}`, planData)
-  //       .then((response) => {
-  //         console.log("Plan updated successfully:", response.data);
-  //         setTimeout(() => {
-  //           navigate('/explore'); // Change to any route
-  //         }, 800);
-  //         alert("Plan updated successfully!");
-  //       })
-  //       .catch((error) => {
-  //         console.error("Error updating plan:", error);
-  //       });
-  //     }
-  //     else{
-  //       // Create mode
-  //       await axios.post("http://localhost:5000/planify/v1/plans/createPlan", planData)
-  //       .then((response) => {
-  //         console.log("Plan created successfully:", response.data);
-
-  //         setTimeout(() => {
-  //           navigate('/explore'); // Change to any route
-  //         }, 800);
-  //         alert("Plan created successfully!");
-  //       })
-  //       .catch((error) => {
-  //         console.error("Error creating plan:", error);
-  //       });
-  //         }
-  //     }
-  //     catch(err){
-  //       console.error("Error in submitting plan:", err);
-  //     }
-  // }
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -134,38 +91,50 @@ const handleDrop = (e) => {
     const formData = new FormData();
 
     images.forEach(file => {
-      if (file.size > MAX_SIZE) {
-        alert(`${file.name} is larger than 2MB`);
-        return;
+      if (file instanceof File) {
+        if (file.size > MAX_SIZE) {
+          alert(`${file.name} is larger than 2MB`);
+          return;
+        }
+        formData.append("images", file);
       }
-      formData.append("images", file);
     });
 
     formData.append("name", form.name);
     formData.append("description", form.description);
     formData.append("category", selectedCategory);
     formData.append("createdAt", form.createdAt);
-    if (form.completedAt) {
-      formData.append("completedAt", form.completedAt);
-    }
+    if (form.completedAt) formData.append("completedAt", form.completedAt);
     formData.append("isDone", form.isDone);
 
-    console.log("Form Data" , formData);
-    await axios.post(
-      "/planify/v1/plans/createPlan",
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    );
+    try {
+      if (id) {
+        // ✅ UPDATE
+        await axios.put(
+          `/planify/v1/plans/editPlan/${id}`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        alert("Plan updated successfully!");
+      } else {
+        // ✅ CREATE
+        await axios.post(
+          "/planify/v1/plans/createPlan",
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        alert("Plan created successfully!");
+      }
 
-    console.log("Plan created successfully! and form data : " , formData);
-
-    setTimeout(() =>  {
-      navigate('/explore'); // Change to any route
-    }, 800);
-    alert("Plan created successfully!");
-
+      navigate("/explore");
+    } catch (err) {
+      console.error("Submit error:", err);
+      alert("Something went wrong");
+    }
   };
 
+
+  const [update , setUpdate] = React.useState(false) ;
 
   const handleFileSelect = (e) => {
 
@@ -321,7 +290,7 @@ const handleDrop = (e) => {
             <input checked={form.isDone} name='isDone' onChange={(e)=>setForm({...form , isDone : e.target.checked})} type='checkbox' className='mt-4' /> Tick this box if this plan is already completed.
           </div>
 
-          <Button type='submit' text={id?'Update Plan':'Create Plan'} className='mt-4 w-1/3' />
+          <Button  type='submit' text={id?'Update Plan':'Create Plan'} className='mt-4 w-1/3' />
           {/* <p className='text-red-400 text-xs'> * indicates required fields  </p> */}
         </form>
       </div>

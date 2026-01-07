@@ -3,12 +3,15 @@ import { useState } from 'react';
 import axios from 'axios';
 import { FaSearch } from "react-icons/fa";
 import { LuSquareArrowUpRight } from "react-icons/lu";
+import { BiArrowBack } from "react-icons/bi";
+import { useNavigate } from 'react-router-dom';
 
 const Gallery = () => {
     const [plans , setPlans] = useState([]);
     const [filteredPlans , setFilteredPlans] = useState([]);
 
     const [searchQuery, setSearchQuery] = useState('');
+    const navigate = useNavigate();
 
     useEffect(() => {
         const getPlans = async () => {
@@ -35,7 +38,9 @@ const Gallery = () => {
   return (
     <div className='w-full min-h-screen p-10 '>
         
-        <div className='relative px-3 flex justify-end mb-10 ml-5'>
+        <button></button>
+        <div className='relative px-3 flex justify-between mb-10 ml-5'>
+            <button onClick={() => navigate('/')}><BiArrowBack className='text-3xl mb-5 text-white hover:text-[#e0b0a0]' /></button>
             <div className=' flex peer items-center z-20 rounded-full bg-white/10 backdrop-blur-lg p-4'>
                 <FaSearch size={30}/>
             </div>

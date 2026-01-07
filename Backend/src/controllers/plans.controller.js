@@ -79,17 +79,44 @@ const getPlanById = asyncHandler( async (req,res) => {
     res.status(200).json(new ApiResponse(200, plan));
 })
 
-const editPlanById = asyncHandler( async (req, res) => {
-    const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError(400, 'Invalid plan ID');
-    }
-    const updatedPlan = await Plan.findOneAndUpdate({ _id: id, user: req.user._id }, req.body, { new: true });
-    if (!updatedPlan) {
-        throw new ApiError(404, 'Plan not found');
-    }
-    res.status(200).json(new ApiResponse(200, updatedPlan, 'Plan updated successfully'));
+const editPlanById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(400, "Invalid plan ID");
+  }
+
+  const updateData = { ...req.body };
+
+  // 🔥 Handle new images
+  if (req.files?.length) {
+    const uploadPromises = req.files.map(file =>
+      uploadToCloudinary(file.path)
+    );
+
+    const results = await Promise.all(uploadPromises);
+
+    updateData.images = results.map(r => {
+      if (!r) throw new ApiError(500, "Image upload failed");
+      return r.url;
+    });
+  }
+
+  const updatedPlan = await Plan.findOneAndUpdate(
+    { _id: id, user: req.user._id },
+    updateData,
+    { new: true }
+  );
+
+  if (!updatedPlan) {
+    throw new ApiError(404, "Plan not found");
+  }
+
+  res.status(200).json(
+    new ApiResponse(200, updatedPlan, "Plan updated successfully")
+  );
 });
+
 
 const markAsDone = asyncHandler( async (req, res) => {
     const { id } = req.params;
