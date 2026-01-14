@@ -5,6 +5,7 @@ import userRouter from '../src/routes/user.router.js';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 dotenv.config();
+import multer from 'multer';
 
 const app = express();
 
