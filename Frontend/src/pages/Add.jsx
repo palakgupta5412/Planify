@@ -43,7 +43,7 @@ const Add = () => {
 
     const loadPlan = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/planify/v1/plans/getPlanById/${id}`);
+        const res = await axios.get(`https://planify-7z51.onrender.com/planify/v1/plans/getPlanById/${id}`);
         console.log("Response while fetching plan:", res);
         
         const p = res.data.data;

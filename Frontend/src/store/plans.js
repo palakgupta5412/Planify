@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export const fetchPlans = async () => {
   try {
-    const response = await axios.get('http://localhost:5000/planify/v1/plans/getAllPlans');
+    const response = await axios.get('https://planify-7z51.onrender.com/planify/v1/plans/getAllPlans');
     console.log('Fetched plans:', response.data.data);
     return response.data.data;
 
