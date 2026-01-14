@@ -13,6 +13,8 @@ const Navbar = () => {
     const { user , setUser } = useAuth();
     const navigate = useNavigate();
 
+    const logo = 'https://res.cloudinary.com/dc8ryewn6/image/upload/v1768367241/planifyLogo_mzbsuq.png' ;
+
     const [isSelected, setIsSelected] = React.useState("Home");
 
     const handleLogout = async()=>{
@@ -29,7 +31,7 @@ const Navbar = () => {
     <nav className='sticky top-0 z-50 left-0 backdrop-blur-lg mb-12 mt-8 flex h-12 items-center max-w-full justify-between mx-12 py-10 px-4 rounded-lg '>
 
         <div className='w-1/4 pt-10 '>
-            <img onClick={()=>navigate('/')} src='../public/planifyLogo.png' alt='logo' className='bg-cover bg-center hover:scale-105 overflow-hidden transition ease-in-out duration-300 flex items-center' />
+            <img onClick={()=>navigate('/')} src={logo} alt='logo' className='bg-cover bg-center hover:scale-105 overflow-hidden transition ease-in-out duration-300 flex items-center' />
         </div>
         
         <div className='w-1/2 flex justify-center'>

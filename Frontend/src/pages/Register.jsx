@@ -13,6 +13,8 @@ const Register = () => {
     const [pfp, setPfp] = React.useState(null);
     const fileInputRef = React.useRef(null);
 
+    const logo = 'https://res.cloudinary.com/dc8ryewn6/image/upload/v1768367241/planifyLogo_mzbsuq.png' ;
+
     const [name , setName] = React.useState('');
     const [email , setEmail] = React.useState('');
     const [password , setPassword] = React.useState('');
@@ -53,7 +55,7 @@ const Register = () => {
     <div className='overflow-hidden w-full min-h-screen flex flex-col justify-center items-center p-10'>
         <div className='border-2 h-[88vh] flex flex-col justify-start items-center px-5 rounded-xl border-gray-300 w-1/4 '>
             <div className='w-64 pt-4'>
-                <img src='../public/planifyLogo.png' alt='logo' className='bg-cover bg-center hover:scale-105 overflow-hidden transition ease-in-out duration-300' />
+                <img src={logo} alt='logo' className='bg-cover bg-center hover:scale-105 overflow-hidden transition ease-in-out duration-300' />
             </div>
             <h1 className='text-white text-md'>Register / Sign Up</h1>
             <div className='flex items-center flex-col gap-6 p-1 w-full mt-2'>

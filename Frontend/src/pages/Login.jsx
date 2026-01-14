@@ -16,6 +16,8 @@ const Login = () => {
     const { setUser } = useAuth();
     const navigate = useNavigate();
 
+    const logo =  'https://res.cloudinary.com/dc8ryewn6/image/upload/v1768367241/planifyLogo_mzbsuq.png' ;
+
     const handleLogin = async () => {
     //   const res = await axios.post("/login", { email, password }, { withCredentials: true });
       
@@ -37,7 +39,7 @@ const Login = () => {
       <div className='overflow-hidden bg-transparent w-full max-h-screen flex flex-col justify-center items-center p-20'>
           <div className='border-2 h-[88vh] flex flex-col justify-start items-center px-5 rounded-xl border-gray-300 w-1/4 '>
             <div className='w-64 pt-4'>
-                <img src='../public/planifyLogo.png' alt='logo' className='bg-cover bg-center hover:scale-105 overflow-hidden transition ease-in-out duration-300' />
+                <img src={logo} alt='logo' className='bg-cover bg-center hover:scale-105 overflow-hidden transition ease-in-out duration-300' />
             </div>
             <h1 className='text-white text-md'>Login</h1>
             <div className='flex items-center flex-col gap-6 p-1 w-full mt-2'>
