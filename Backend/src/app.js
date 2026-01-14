@@ -10,8 +10,8 @@ const app = express();
 
 app.use(cookieParser());
 app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true
+  origin: "*" ,
+  credentials: true,
 }));
 
 app.use(express.json(
