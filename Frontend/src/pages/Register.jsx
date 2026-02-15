@@ -1,73 +1,89 @@
-import React from 'react'
+import React, { useRef, useState } from 'react'
 import Button from '../components/Button'
-import { IoEyeOffOutline } from "react-icons/io5";
+import { IoEyeOffOutline, IoEyeOutline } from "react-icons/io5";
 import { useNavigate } from 'react-router-dom';
 import { TbMoodEdit } from "react-icons/tb";
-import { IoEyeOutline } from "react-icons/io5";
-
 import axios from 'axios';
+import toast from 'react-hot-toast'; // IMPORT ADDED
 
 const Register = () => {
     const navigate = useNavigate();
-    const [showPassword, setShowPassword] = React.useState(false);
-    const [pfp, setPfp] = React.useState(null);
-    const fileInputRef = React.useRef(null);
+    const fileInputRef = useRef(null);
+    
+    const [showPassword, setShowPassword] = useState(false);
+    const [pfp, setPfp] = useState(null);
+    const [name , setName] = useState('');
+    const [email , setEmail] = useState('');
+    const [password , setPassword] = useState('');
 
-    const logo = 'https://res.cloudinary.com/dc8ryewn6/image/upload/v1768367241/planifyLogo_mzbsuq.png' ;
+    const logo = 'https://res.cloudinary.com/dc8ryewn6/image/upload/v1768367241/planifyLogo_mzbsuq.png';
 
-    const [name , setName] = React.useState('');
-    const [email , setEmail] = React.useState('');
-    const [password , setPassword] = React.useState('');
-     
     const handlePfpChange = (e) => {
       const file = e.target.files[0];
       if (!file) return;
+
+      // Size check for profile pic
+      if (file.size > 2 * 1024 * 1024) {
+          toast.error("Image size should be less than 2MB");
+          return;
+      }
 
       const previewURL = URL.createObjectURL(file);
       setPfp(previewURL);
     };
 
-    const handleRegister = async () => {
-        try{
+    const handleRegister = async (e) => {
+        e.preventDefault(); // Prevent page refresh
+        
+        if(!name || !email || !password) {
+            toast.error("Please fill all required fields");
+            return;
+        }
+
+        try {
             const formData = new FormData();
-             formData.append("name", name);
-             formData.append("email", email);
-             formData.append("password", password);
-             formData.append("pfp", fileInputRef.current.files[0]);
+            formData.append("name", name);
+            formData.append("email", email);
+            formData.append("password", password);
+            if(fileInputRef.current.files[0]) {
+                formData.append("pfp", fileInputRef.current.files[0]);
+            }
                 
-             const res = await axios.post(
-               "/planify/v1/users/register",
-               formData,
-             );
+            const res = await axios.post("/planify/v1/users/register", formData);
          
-             if (res.data.success) {
-               alert("Registered successfully!");
-               navigate("/login");   // 👈 NOT home
+            if (res.data.success) {
+               toast.success("Account created! Please login.");
+               navigate("/login");
             }
         }
-        catch(err){
-            alert(err?.response?.data?.message)
+        catch(err) {
+            toast.error(err?.response?.data?.message || "Registration failed");
         }
     };
 
-
   return (
-    <div className='overflow-hidden w-full min-h-screen flex flex-col justify-center items-center p-10'>
-        <div className='border-2 h-[88vh] flex flex-col justify-start items-center px-5 rounded-xl border-gray-300 w-1/4 '>
-            <div className='w-64 pt-4'>
-                <img src={logo} alt='logo' className='bg-cover bg-center hover:scale-105 overflow-hidden transition ease-in-out duration-300' />
+    <div className='min-h-screen w-full flex flex-col justify-center items-center p-4 md:p-10'>
+        {/* RESPONSIVE BOX: w-full on mobile, fixed width on desktop */}
+        <div className='border-2 py-8 flex flex-col justify-start items-center px-6 rounded-xl border-gray-300 w-full sm:w-[450px] backdrop-blur-md bg-white/5 shadow-2xl'>
+            
+            <div className='w-48 md:w-64 pt-4 mb-4'>
+                <img src={logo} alt='logo' className='hover:scale-105 transition ease-in-out duration-300 cursor-pointer' onClick={() => navigate('/')} />
             </div>
-            <h1 className='text-white text-md'>Register / Sign Up</h1>
-            <div className='flex items-center flex-col gap-6 p-1 w-full mt-2'>
-                <div className='relative rounded-full w-16 bg-white/10'>
-                    <div className='z-10 w-16 h-16 rounded-full overflow-hidden'>
+
+            <h1 className='text-white text-xl font-bold mb-6'>Create Account</h1>
+            
+            <form onSubmit={handleRegister} className='flex items-center flex-col gap-5 w-full'>
+                
+                {/* Profile Picture Upload Section */}
+                <div className='relative group'>
+                    <div className='w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-2 border-[#DFB6B2] bg-white/10'>
                         <img
-                          src={pfp || 'pfp.png'}
-                          className='bg-cover bg-center w-16 h-16 rounded-full'
+                          src={pfp || 'pfp.png'} // Make sure pfp.png exists in your public folder
+                          alt="Profile Preview"
+                          className='w-full h-full object-cover'
                         />
-                        {/* <img src='pfp.png' className='bg-cover bg-center overflow-hidden transition ease-in-out duration-300'/> */}
                     </div>
-                    <div className='text-white absolute -bottom-1 right-0 z-50'>
+                    <div className='absolute bottom-0 right-0 bg-[#DFB6B2] p-1.5 rounded-full text-black shadow-lg cursor-pointer hover:scale-110 transition'>
                         <input
                           type="file"
                           accept="image/*"
@@ -75,38 +91,50 @@ const Register = () => {
                           onChange={handlePfpChange}
                           className="hidden"
                         />
-
-                        <button type='button' onClick={() => fileInputRef.current.click()}> <TbMoodEdit /> </button>
-                       
+                        <TbMoodEdit size={20} onClick={() => fileInputRef.current.click()} />
                     </div>
                 </div>
-                <input 
-                    type='name'
-                    className='w-full h-8 px-2 rounded-sm outline-none bg-white/10 backdrop-blur-md text-white'
-                    placeholder='Enter your Name'
-                    onChange={(e) => setName(e.target.value)}
-                    value={name}
-                />
-                <input 
-                    type='email'
-                    className='w-full h-8 px-2 rounded-sm outline-none bg-white/10 backdrop-blur-md text-white'
-                    placeholder='Enter your Email'
-                    onChange={(e) => setEmail(e.target.value)}
-                    value={email}
-                />
-                <div className='flex justify-between px-2 w-full items-center bg-white/10 backdrop-blur-md text-white'>
+
+                <div className='w-full space-y-4'>
                     <input 
-                        className='w-full h-8 bg-transparent rounded-sm outline-none '
-                        type={showPassword ? "text" : "password"}
-                        placeholder='Enter your Password'
-                        onChange={(e) => setPassword(e.target.value)}
-                        value={password}
+                        type='text'
+                        className='w-full h-11 px-4 rounded-md outline-none bg-white/10 border border-white/10 text-white focus:border-[#DFB6B2] transition-all'
+                        placeholder='Full Name'
+                        onChange={(e) => setName(e.target.value)}
+                        value={name}
+                        required
                     />
-                    {showPassword ? <IoEyeOutline size={20} onClick={() => setShowPassword(!showPassword)} type='button' className='mr-2'/> : <IoEyeOffOutline size={20} onClick={() => setShowPassword(!showPassword)} type='button' className='mr-2'/>}
+                    
+                    <input 
+                        type='email'
+                        className='w-full h-11 px-4 rounded-md outline-none bg-white/10 border border-white/10 text-white focus:border-[#DFB6B2] transition-all'
+                        placeholder='Email Address'
+                        onChange={(e) => setEmail(e.target.value)}
+                        value={email}
+                        required
+                    />
+
+                    <div className='flex justify-between px-4 w-full items-center bg-white/10 border border-white/10 rounded-md focus-within:border-[#DFB6B2] transition-all'>
+                        <input 
+                            className='w-full h-11 bg-transparent outline-none text-white'
+                            type={showPassword ? "text" : "password"}
+                            placeholder='Create Password'
+                            onChange={(e) => setPassword(e.target.value)}
+                            value={password}
+                            required
+                        />
+                        <button type='button' onClick={() => setShowPassword(!showPassword)} className='text-zinc-400 hover:text-white'>
+                            {showPassword ? <IoEyeOutline size={20}/> : <IoEyeOffOutline size={20}/>}
+                        </button>
+                    </div>
                 </div>
-                <Button className='w-full' text='Register' type='button' onClick={handleRegister} />
-            </div>
-            <p className=' text-xs text-zinc-400'>Already have an account? <span onClick={() => {navigate('/login')}} className='text-[#DFB6B2] hover:text-white cursor-pointer'>Login</span></p>
+
+                <Button className='w-full mt-2' text='Sign Up' type='submit' />
+            </form>
+
+            <p className='mt-6 text-sm text-zinc-400'>
+                Already have an account? <span onClick={() => navigate('/login')} className='text-[#DFB6B2] font-semibold cursor-pointer hover:underline'>Login</span>
+            </p>
         </div>
     </div>
   )

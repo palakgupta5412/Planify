@@ -1,45 +1,43 @@
-import React, { useState , useEffect } from "react";
-import { fetchPlans } from "../store/plans";
+import React, { useState, useEffect } from "react";
+import { fetchPlans } from "../store/plans"; // Assuming this is used elsewhere or legacy
 import categories from "../constants/categories";
 import axios from "../utils/axiosConfig.js";
+import toast from "react-hot-toast"; // IMPORT ADDED
 
 const Calendar = ({ year = 2025 }) => {
   const [page, setPage] = useState(1);
-  const [plans , setPlans] = useState([]);
-  
+  const [plans, setPlans] = useState([]);
+
   useEffect(() => {
     const getPlans = async () => {
-      const data = await axios.get('/planify/v1/plans/getAllPlans');
-      setPlans(data.data.data.plans);
+      try {
+        const data = await axios.get('/planify/v1/plans/getAllPlans');
+        setPlans(data.data.data.plans);
+        // Optional: toast.success("Plans loaded!"); // Usually fetch pe success toast nahi dikhate, user irritate ho sakta hai.
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to load calendar plans."); // ERROR TOAST ADDED
+      }
     };
     getPlans();
   }, []);
-  
+
   const icons = {
-    "Food": "🍜" ,
+    "Food": "🍜",
     "Experiences": "🎉",
     "Travel": "✈️",
     "Places": "📍",
     "Shopping": "🛒"
   }
 
-  // Changinf dates format 
   const iconMap = {};
-plans.forEach(p => {
-    if (!p.completedAt) return; // skip empty/null dates
-
+  plans.forEach(p => {
+    if (!p.completedAt) return;
     const date = new Date(p.completedAt);
-
-    if (isNaN(date)) return; // skip invalid dates
-
+    if (isNaN(date)) return;
     const normalized = date.toISOString().split("T")[0];
     iconMap[normalized] = icons[p.category];
-});
-
-  // Convert plan list to { "2025-02-04": "🍽" }
-  // plans.forEach(p => {
-  //   iconMap[p.completedAt] = icons[p.category];
-  // });
+  });
 
   const monthsPage1 = [0, 1, 2, 3, 4, 5];
   const monthsPage2 = [6, 7, 8, 9, 10, 11];
@@ -54,49 +52,46 @@ plans.forEach(p => {
     const { firstDay, totalDays } = getDays(year, month);
     const daysArray = [];
 
-    // Empty cells before day 1
     for (let i = 0; i < firstDay; i++) {
       daysArray.push({ day: "", icon: null });
     }
 
-    // Actual days
     for (let d = 1; d <= totalDays; d++) {
-      const dateKey = `${year}-${String(month + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       daysArray.push({ day: d, icon: iconMap[dateKey] });
     }
 
+    // RESPONSIVE: p-2 on mobile, p-3 on desktop
     return (
-      <div className="border border-white/20 p-3 rounded-lg">
-        <h2 className="text-center text-white mb-2 font-semibold">
+      <div key={month} className="border border-white/20 p-2 md:p-3 rounded-lg w-full">
+        <h2 className="text-center text-white mb-2 font-semibold text-sm md:text-base">
           {new Date(year, month).toLocaleString("default", { month: "long" })}
         </h2>
 
-        <div className="grid grid-cols-7 gap-1 text-white/70 text-sm mb-1">
-          {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => (
+        <div className="grid grid-cols-7 gap-1 text-white/70 text-xs md:text-sm mb-1">
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
             <div key={d} className="text-center">{d}</div>
           ))}
         </div>
 
         <div className="grid grid-cols-7 gap-1">
-          {daysArray.map((d,i) => (
-            <div key={i} className="h-14 relative cursor-pointer group border border-white/10 rounded-md flex flex-col items-center justify-center text-white">
-              {d.day && <span className={`${d.icon ? "hidden" : ""}`}>{d.day}</span>}
-              {d.icon && <span className="text-xl">{d.icon}</span>}
-              <div className={`my-auto mx-auto left-0 -bottom-8 invisible ${d.icon ? "group-hover:opacity-100 group-hover:visible" : ""} absolute opacity-0 transition bg-[#1F1E24] p-2 rounded-md`}>
-                {
-                    (()=>{
-                        if (!d.day) return null;
-                        const dateKey = `${year}-${String(month + 1).padStart(2,'0')}-${String(d.day).padStart(2,'0')}`;
-                        const dayPlans = plans.filter(p => p.completedAt === dateKey);
+          {daysArray.map((d, i) => (
+            <div key={i} className="h-10 md:h-14 relative cursor-pointer group border border-white/10 rounded-md flex flex-col items-center justify-center text-white transition-colors hover:bg-white/5">
+              {d.day && <span className={`text-xs md:text-sm ${d.icon ? "hidden" : ""}`}>{d.day}</span>}
+              {d.icon && <span className="text-sm md:text-xl">{d.icon}</span>}
+              
+              {/* Tooltip Logic kept same, just adjusted positioning classes slightly if needed */}
+              <div className={`z-10 w-max max-w-[150px] pointer-events-none my-auto mx-auto left-1/2 -translate-x-1/2 -bottom-8 invisible ${d.icon ? "group-hover:opacity-100 group-hover:visible" : ""} absolute opacity-0 transition bg-[#1F1E24] p-2 rounded-md shadow-xl border border-white/10`}>
+                {(() => {
+                  if (!d.day) return null;
+                  const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`;
+                  const dayPlans = plans.filter(p => p.completedAt === dateKey);
 
-                        if(dayPlans.length === 0) {
-                            return <p className="text-xs text-white">No plans completed</p>;
-                        }
-                        return dayPlans.map((p, idx) => (
-                            <p key={idx} className="text-xs text-white">{`${p.name} ${idx!==dayPlans.length-1 ? "," : ""}`}</p>
-                        ));
-                    })()
-                }
+                  if (dayPlans.length === 0) return <p className="text-xs text-white">No plans completed</p>;
+                  return dayPlans.map((p, idx) => (
+                    <p key={idx} className="text-xs text-white whitespace-nowrap">{`${p.name}${idx !== dayPlans.length - 1 ? "," : ""}`}</p>
+                  ));
+                })()}
               </div>
             </div>
           ))}
@@ -108,28 +103,30 @@ plans.forEach(p => {
   const selectedMonths = page === 1 ? monthsPage1 : monthsPage2;
 
   return (
-    <div className="w-full p-6">
-      <div className="flex justify-between mb-4 text-white">
+    <div className="w-full p-4 md:p-6">
+      {/* RESPONSIVE Header: Stack on mobile, row on desktop */}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 text-white gap-4">
         <button
           disabled={page === 1}
           onClick={() => setPage(1)}
-          className="px-4 py-2 bg-white/10 rounded disabled:opacity-20"
+          className="px-4 py-2 bg-white/10 rounded disabled:opacity-20 text-sm md:text-base w-full md:w-auto hover:bg-white/20 transition"
         >
           Jan–Jun
         </button>
 
-        <h1 className="text-2xl font-bold">{year} Calendar </h1>
+        <h1 className="text-xl md:text-2xl font-bold">{year} Calendar</h1>
 
         <button
           disabled={page === 2}
           onClick={() => setPage(2)}
-          className="px-4 py-2 bg-white/10 rounded disabled:opacity-20"
+          className="px-4 py-2 bg-white/10 rounded disabled:opacity-20 text-sm md:text-base w-full md:w-auto hover:bg-white/20 transition"
         >
           Jul–Dec
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      {/* RESPONSIVE Grid: 1 col mobile, 2 tablet, 3 desktop */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {selectedMonths.map(m => renderMonth(m))}
       </div>
     </div>

@@ -1,104 +1,102 @@
 import React from 'react'
-import { isLoggedIn } from '../store/login';
-import { profile } from '../store/login';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { LuCalendarCheck } from "react-icons/lu";
 import { RiLogoutBoxRLine } from "react-icons/ri";
-import { IoKey } from "react-icons/io5";
 import { CgProfile } from "react-icons/cg";
 import { useAuth } from './AuthContext';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const Navbar = () => {
     const { user , setUser } = useAuth();
     const navigate = useNavigate();
 
     const logo = 'https://res.cloudinary.com/dc8ryewn6/image/upload/v1768367241/planifyLogo_mzbsuq.png' ;
-
-    const [isSelected, setIsSelected] = React.useState("Home");
+    const [isMenuOpen, setIsMenuOpen] = React.useState(false); 
 
     const handleLogout = async()=>{
         try {
             await axios.post("/planify/v1/users/logout", {});
             setUser(null);
+            toast.success("Logged out");
             navigate("/");
+            setIsMenuOpen(false);
         } catch(err) {
-            console.error("Logout failed:", err);    
+            toast.error("Logout failed");
         }
     }
 
   return (
-    <nav className='sticky top-0 z-50 left-0 backdrop-blur-lg mb-12 mt-8 flex h-12 items-center max-w-full justify-between mx-12 py-10 px-4 rounded-lg '>
+    <>
+        {/* DESKTOP NAV */}
+        <nav className='sticky top-0 z-40 bg-black/60 md:bg-white/5 backdrop-blur-xl mb-6 mt-0 md:mt-6 flex items-center justify-between mx-0 md:mx-12 py-4 md:py-3 px-6 md:px-8 md:rounded-2xl border-b md:border border-white/10 shadow-2xl transition-all duration-300'>
+            <div className='flex items-center group'>
+                <img onClick={()=>navigate('/')} src={logo} alt='logo' className='w-28 md:w-32 cursor-pointer transition-transform duration-300 group-hover:scale-105' />
+            </div>
 
-        <div className='w-1/4 pt-10 '>
-            <img onClick={()=>navigate('/')} src={logo} alt='logo' className='bg-cover bg-center hover:scale-105 overflow-hidden transition ease-in-out duration-300 flex items-center' />
-        </div>
-        
-        <div className='w-1/2 flex justify-center'>
-            <div className='flex gap-16'>
-                <NavLink 
-                    onClick={()=>setIsSelected("Home")} 
-                    to="/" 
-                    className={`hover:text-white hover:scale-105 overflow-hidden transition ease-in-out duration-300 ${isSelected === "Home" ? " text-white text-md": ""}`}>
-                        <a href="#">Home</a>
-                </NavLink>
-                <NavLink 
-                    onClick={()=>setIsSelected("Explore")} 
-                    to="/explore" 
-                    className={`hover:text-white hover:scale-105 overflow-hidden transition ease-in-out duration-300 ${isSelected === "Explore" ? " text-white text-md": ""}`}>
-                        <a href="#">Explore</a>
-                </NavLink>
-                <NavLink 
-                    onClick={()=>setIsSelected("Gallery")} 
-                    to="/gallery" 
-                    className={`hover:text-white hover:scale-105 overflow-hidden transition ease-in-out duration-300 flex items-center text-[#FAE5D8] ${isSelected === "Gallery" ? " text-white": ""}`}>
-                        <a href="#">Gallery </a> 
-                </NavLink>
-                <NavLink 
-                    onClick={()=>setIsSelected("Add a new Plan")} 
-                    to="/add" 
-                    className={`hover:text-white hover:scale-105 overflow-hidden transition ease-in-out duration-300 ${isSelected === "Add a new Plan" ? " text-white": ""}`}>
-                        <a href="#">Add a new Plan</a>
-                </NavLink>
-                <NavLink 
-                    to ="/calendar"
-                    className='hover:text-white hover:scale-105  transition ease-in-out duration-300'>
-                        <div className=' flex flex-col justify-center items-center text-center'>
-                            <a className='hover:text-red-400' href="/calendar">
-                                <LuCalendarCheck size={26}/>
-                            </a>
+            <div className='hidden md:flex gap-10 items-center font-medium text-sm tracking-wide uppercase'>
+                <NavLink to="/" className={({ isActive }) => `transition-colors duration-300 hover:text-white ${isActive ? "text-white" : "text-zinc-400"}`}>Home</NavLink>
+                <NavLink to="/gallery" className={({ isActive }) => `transition-colors duration-300 hover:text-white ${isActive ? "text-white" : "text-zinc-400"}`}>Gallery</NavLink>
+                <NavLink to="/add" className={({ isActive }) => `transition-colors duration-300 hover:text-white ${isActive ? "text-white" : "text-zinc-400"}`}>Add Plan</NavLink>
+                <NavLink to="/calendar" className={({ isActive }) => `transition-all duration-300 hover:scale-125 ${isActive ? "text-red-400" : "text-zinc-400 hover:text-red-400"}`}><LuCalendarCheck size={22}/></NavLink>
+                
+                {user ? (
+                    <div className="relative group/profile">
+                        <img src={user.profilePic} className='w-9 h-9 rounded-full border-2 border-white/10 cursor-pointer' alt="pfp" />
+                        <div className="absolute right-0 top-full pt-4 opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible transition-all duration-300">
+                            <div className="bg-[#18181b] border border-white/10 w-48 rounded-xl p-2 shadow-2xl">
+                                <Link to="/profile" className="flex items-center gap-2 px-3 py-2 text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg text-xs"><CgProfile /> Profile</Link>
+                                <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 text-red-400 hover:bg-red-400/10 rounded-lg text-xs mt-1"><RiLogoutBoxRLine /> Logout</button>
+                            </div>
                         </div>
-                </NavLink>
+                    </div>
+                ) : (
+                    <button onClick={()=>navigate('/login')} className='bg-white text-black px-6 py-2 rounded-full text-xs font-bold shadow-lg shadow-white/5'>LOGIN</button>
+                )}
+            </div>
+
+            <button onClick={() => setIsMenuOpen(true)} className="md:hidden text-white text-3xl p-1">☰</button>
+        </nav>
+
+        {/* MOBILE MENU: FIXED HEIGHT, NO SCROLLING */}
+        <div className={`fixed inset-0 z-[999] bg-[#09090b] flex flex-col h-screen overflow-hidden transition-transform duration-500 ease-in-out ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}>
+            
+            {/* Header: Fixed at top */}
+            <div className="flex justify-between items-center p-6 border-b border-white/5 h-[10vh]">
+                <span className="text-white font-black text-xl italic">PLANIFY</span>
+                <button onClick={() => setIsMenuOpen(false)} className="text-white text-3xl p-2">✕</button>
+            </div>
+
+            {/* Nav Items: Centered in the remaining space */}
+            <div className="flex flex-col items-center justify-center flex-1 gap-6 text-2xl font-bold text-white uppercase italic">
+                <NavLink onClick={() => setIsMenuOpen(false)} to="/">Home</NavLink>
+                <NavLink onClick={() => setIsMenuOpen(false)} to="/gallery">Gallery</NavLink>
+                <NavLink onClick={() => setIsMenuOpen(false)} to="/add">Add Plan</NavLink>
+                <NavLink onClick={() => setIsMenuOpen(false)} to="/calendar" className="flex items-center gap-4 text-red-500"><LuCalendarCheck size={32}/> Calendar</NavLink>
+            </div>
+
+            {/* Profile Section: Fixed at bottom */}
+            <div className="p-6 border-t border-white/5 h-[25vh] flex flex-col justify-center">
+                {user ? (
+                    <div className="flex flex-col gap-4">
+                        <div className="flex items-center gap-4 bg-white/5 p-3 rounded-xl">
+                            <img src={user.profilePic} className="w-12 h-12 rounded-full border border-white/10" alt="user" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-white font-bold text-base truncate">{user.name}</p>
+                                <p className="text-zinc-500 text-xs truncate">{user.email}</p>
+                            </div>
+                        </div>
+                        <button onClick={handleLogout} className="w-full bg-red-600/20 text-red-500 py-3 rounded-xl font-bold text-center">LOGOUT</button>
+                    </div>
+                ) : (
+                    <div className="flex flex-col gap-3">
+                        <button onClick={()=>{navigate('/login'); setIsMenuOpen(false)}} className="w-full bg-white text-black py-3 rounded-xl font-black">LOGIN</button>
+                        <button onClick={()=>{navigate('/register'); setIsMenuOpen(false)}} className="w-full border border-white/20 text-white py-3 rounded-xl font-black">SIGNUP</button>
+                    </div>
+                )}
             </div>
         </div>
-        
-        {user ? (
-            <div className='relative inline-block group'>
-                
-                <img src={user.profilePic} alt="profile" className='cursor-pointer w-8 h-8 rounded-full' />
-                
-                <div className='cursor-pointer flex flex-col absolute z-50 w-56 right-0 text-xs bg-white/20 backdrop-blur-lg rounded-md p-1 shadow-lg mt-2 opacity-0 invisible transition-all duration-200 group-hover:opacity-100 group-hover:visible'>
-                    
-                    
-                    <div className='backdrop-blur-lg pt-3 flex flex-col justify-center items-center w-full shadow-md mb-2'>
-                        <img src={user.profilePic} alt="profile" className='mb-3 cursor-pointer w-16 h-16 rounded-full bg-contain' />
-                        <h4 className='font-bold border-1 text-sm border-zinc-900'>{user.name}</h4>
-                        <h4 className='font-bold text-zinc-300 mb-3 border-1 border-zinc-900'>{user.email}</h4>
-                    </div>
-                    <div className='flex flex-col gap-1 font-semibold'>
-                        <Link to='/profile' className='hover:bg-white/20 py-1 px-3 w-full backdrop-blur-md text-white text-sm cursor-pointer flex gap-2 items-center'><CgProfile /> View Profile </Link>
-                        <Link to='/password' className='hover:bg-white/20 py-1 px-3 w-full backdrop-blur-md text-white text-sm cursor-pointer flex gap-2 items-center'><IoKey /> Change Password </Link>
-                        <button onClick={handleLogout} className='hover:bg-white/20 py-1 px-3 w-full backdrop-blur-md text-red-700 text-sm cursor-pointer flex gap-2 items-center'><RiLogoutBoxRLine /> Logout </button>
-                    </div>
-                </div>
-            </div>
-        ) : (
-        <div className='flex gap-3 '>
-            <h2 onClick={()=>navigate('/login')} className='hover:text-white cursor-pointer hover:scale-105 overflow-hidden text-md transition ease-in-out duration-300 font-semibold py-1 px-3'>Login</h2>
-            <h2 onClick={()=>navigate('/register')} className='hover:text-white cursor-pointer hover:scale-105 overflow-hidden text-md transition ease-in-out duration-300 font-semibold bg-white/10 py-1 px-3 rounded-md  backdrop-blur-lg'>Signup</h2>
-        </div>    
-        )}
-    </nav>
+    </>
   )
 }
 

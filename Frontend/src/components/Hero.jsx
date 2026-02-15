@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { CiEdit } from "react-icons/ci";
-import { fetchPlans } from '../store/plans';
+// import { fetchPlans } from '../store/plans'; // Kept commented as in your code
 import { AiOutlineDelete } from "react-icons/ai";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import { IoFastFoodOutline } from "react-icons/io5";
@@ -14,6 +14,7 @@ import { RiArrowDropDownLine } from "react-icons/ri";
 import axios from 'axios';
 import Button from './Button';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast'; // IMPORT ADDED
 
 const Hero = () => {
 
@@ -34,6 +35,7 @@ const Hero = () => {
             }
             catch(err){
                 console.log("Error in getting plans" , err);
+                toast.error("Error fetching plans"); // ADDED TOAST
                 setPlans([]);
             }
         };
@@ -59,9 +61,10 @@ const Hero = () => {
         try {
             await axios.delete(`/planify/v1/plans/deletePlan/${id}`);
             setPlans(prev => prev.filter(plan => plan._id !== id));
-            alert("Plan Deleted Successfully");
+            toast.success("Plan Deleted Successfully"); // CHANGED ALERT TO TOAST
         } catch (error) {
             console.error("Error deleting plan:" , error);
+            toast.error("Failed to delete plan"); // ADDED ERROR TOAST
         }
     }
 
@@ -74,10 +77,11 @@ const Hero = () => {
                     p._id === id ? { ...p, isDone: true } : p
                 )
             );
-            alert("Plan marked as done!");
+            toast.success("Plan marked as done!"); // CHANGED ALERT TO TOAST
             return res;
         } catch (error) {
             console.error("Error marking plan as done:", error);
+            toast.error("Failed to update status"); // ADDED ERROR TOAST
         }
     }
 
@@ -85,21 +89,25 @@ const Hero = () => {
         try {
             await axios.delete(`/planify/v1/plans/deleteAllPlans`);
             setPlans([]);
-            alert("All Plans Deleted Successfully");
+            toast.success("All Plans Deleted Successfully"); // CHANGED ALERT TO TOAST
         } catch (error) {
             console.error("Error deleting all plans:", error);
+            toast.error("Failed to delete all plans"); // ADDED ERROR TOAST
         }
     }
 
     
 
   return (
-    <div className='w-full mb-10 grayscale min-h-screen gap-8 pt-20 px-16 '>
+    // RESPONSIVE: px-16 -> px-4 md:px-16 (Mobile padding fix)
+    <div className='w-full mb-10 grayscale min-h-screen gap-8 pt-20 px-4 md:px-16 '>
         <div className='w-full flex flex-col gap-2 mb-10 '>
 
             <div >
-                <div className='flex justify-between'>
-                    <div className='flex gap-2 '>
+                {/* RESPONSIVE: flex-row -> flex-col md:flex-row (Stack on mobile) */}
+                <div className='flex flex-col md:flex-row justify-between gap-4 md:gap-0'>
+                    {/* RESPONSIVE: added flex-wrap so categories don't overflow */}
+                    <div className='flex gap-2 flex-wrap'>
                         {categories.map((category)=>{
                         return (
                             <div onClick={()=>{setActive(category)}}  className={`${category==active ? "bg-zinc-400 text-white rounded-sm" : "rounded-md"} backdrop-blur-md cursor-pointer bg-white/10 px-3 py-1`}>
@@ -112,7 +120,7 @@ const Hero = () => {
                         )
                         })}
                     </div>
-                    <div className='flex gap-2 justify-center items-center' >
+                    <div className='flex gap-2 justify-start md:justify-center items-center' >
                         <select onChange={(e)=>setFilterStatus(e.target.value)} className='backdrop-blur-md bg-white/10 text-white text-center px-1 py-1 rounded-md'>
                             <option 
                                 className='text-black bg-white/10 backdrop-blur-lg ' 
@@ -144,13 +152,18 @@ const Hero = () => {
                     const Icon = categoryImage(plan.category);
                     if(plan.category == active || active == "All")
                     return (
-                        <div key={plan._id} className={`hover:bg-white/20 flex justify-between backdrop-blur-md bg-white/10 px-8 py-4 rounded-md items-center`}>
-                            <div className='w-1/2'>
+                        // RESPONSIVE: flex-col on mobile, flex-row on desktop. px-8 -> px-4 md:px-8
+                        <div key={plan._id} className={`hover:bg-white/20 flex flex-col md:flex-row justify-between backdrop-blur-md bg-white/10 px-4 md:px-8 py-4 rounded-md items-start md:items-center gap-4 md:gap-0`}>
+                            {/* RESPONSIVE: w-1/2 -> w-full md:w-1/2 */}
+                            <div className='w-full md:w-1/2'>
                                 <h2 className='text-lg font-semibold'>{plan.name}<span className={`text-white ml-1 text-[2px] ${active == "All" ? "" : "hidden"}`}>{`(${plan.category})`}</span></h2>
                                 <p className='text-sm text-zinc-300'>{plan.description}</p>
                             </div>
-                            <div className='h-full flex justify-center items-center'><Icon size={24}/></div>
-                            <div className='flex items-center gap-3 text-xl'>
+                            {/* RESPONSIVE: hidden on mobile if you want, or keep it. Added md:block logic to align icon */}
+                            <div className='hidden md:flex h-full justify-center items-center'><Icon size={24}/></div>
+                            
+                            {/* RESPONSIVE: w-full flex justify-end on mobile */}
+                            <div className='flex items-center gap-3 text-xl w-full md:w-auto justify-end'>
                                 <button onClick={()=>navigate(`/add/${plan._id}`)} className='hover:text-white hover:font-bold'>
                                     <CiEdit />
                                 </button>
@@ -166,7 +179,8 @@ const Hero = () => {
             </div>
         
         </div>
-        <div className='w-full flex justify-end gap-4 mt-10'>
+        {/* RESPONSIVE: flex-col on mobile for buttons */}
+        <div className='w-full flex flex-col md:flex-row justify-end gap-4 mt-10'>
             <Button text="Delete All Plans" onClick={deleteAllPlans}/>
             <Button text="Add new Plan" onClick={()=>(navigate("/add"))}/>
         </div>

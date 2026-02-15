@@ -1,103 +1,100 @@
-import React from 'react'
-import { useState , useEffect , } from 'react'
-import { useParams } from 'react-router-dom'
-import Button from '../components/Button'
+import React, { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast'; // IMPORT ADDED
+import Button from '../components/Button'
+
+// Icons
 import { IoFastFoodOutline } from "react-icons/io5";
-import { TbBrandFunimation } from "react-icons/tb";
-import { RiShoppingCart2Line } from "react-icons/ri";
+import { TbBrandFunimation, TbPhoto } from "react-icons/tb";
+import { RiShoppingCart2Line, RiPlaneLine } from "react-icons/ri";
 import { LuNotebookPen } from "react-icons/lu";
-import { RiPlaneLine } from "react-icons/ri";
-import { MdOutlineVideoCameraBack } from "react-icons/md";
-import { TbPhoto } from "react-icons/tb";
-import { BsCameraVideo } from "react-icons/bs";
-import { BsStar } from "react-icons/bs";
+import { MdOutlineVideoCameraBack, MdSecurityUpdateGood } from "react-icons/md";
+import { BsCameraVideo, BsStar } from "react-icons/bs";
 import { GrCalendar } from "react-icons/gr";
 import { FaRegClock } from "react-icons/fa";
-import { MdSecurityUpdateGood } from "react-icons/md";
-
 
 const Add = () => {
-
   const { id } = useParams();
-  const categories = ["Food", "Experiences", "Travel", "Shopping" , "Places"] ;
+  const categories = ["Food", "Experiences", "Travel", "Shopping", "Places"];
   const navigate = useNavigate();
-  const MAX_SIZE = 2 * 1024 * 1024; 
+  const MAX_SIZE = 2 * 1024 * 1024;
+  
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [images , setImages] = useState([]) ;
-  const [previews , setPreviews] = useState([]) ;
+  const [images, setImages] = useState([]);
+  const [previews, setPreviews] = useState([]);
 
-  const [form , setForm] = React.useState({
-    name : '' ,
-    description : '' ,
-    category : '' ,
-    images : [] ,
-    createdAt : '' ,
-    completedAt : '' ,
-    isDone : false
-  }) ;
+  const [form, setForm] = React.useState({
+    name: '',
+    description: '',
+    category: '',
+    images: [],
+    createdAt: '',
+    completedAt: '',
+    isDone: false
+  });
 
   useEffect(() => {
-    if (!id) return; // create mode
-
+    if (!id) return;
     const loadPlan = async () => {
       try {
-        const res = await axios.get(`https://planify-7z51.onrender.com/planify/v1/plans/getPlanById/${id}`);
-        console.log("Response while fetching plan:", res);
-        
+        const res = await axios.get(`/planify/v1/plans/getPlanById/${id}`);
         const p = res.data.data;
-
         setForm({
           name: p.name,
           description: p.description,
           category: p.category,
-          createdAt: p.createdAt,
-          completedAt: p.completedAt,
+          createdAt: p.createdAt ? p.createdAt.split('T')[0] : '', // Format for date input
+          completedAt: p.completedAt ? p.completedAt.split('T')[0] : '',
           images: p.images || [],
           isDone: p.isDone
         });
-
         setSelectedCategory(p.category);
-        setImages(p.images);
       } catch (err) {
         console.error("Error fetching plan:", err);
+        toast.error("Failed to load plan details");
       }
     };
-
     loadPlan();
   }, [id]);
 
-const handleDrop = (e) => {
-  e.preventDefault();
-  const files = Array.from(e.dataTransfer.files);
-  setImages(prev => [...prev , ...files] )
-  const previewURLs = files.map(file =>
-    URL.createObjectURL(file)
-  );
-  setPreviews(prev => [...prev, ...previewURLs]);
-};
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    processFiles(files);
+  };
 
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
   };
 
-  
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    processFiles(files);
+  };
+
+  const processFiles = (files) => {
+    const validFiles = files.filter(file => {
+        if (file.size > MAX_SIZE) {
+            toast.error(`${file.name} is larger than 2MB`);
+            return false;
+        }
+        return true;
+    });
+    
+    setImages(prev => [...prev, ...validFiles]);
+    const previewURLs = validFiles.map(file => URL.createObjectURL(file));
+    setPreviews(prev => [...prev, ...previewURLs]);
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedCategory) return toast.error("Please select a category");
 
     const formData = new FormData();
-
     images.forEach(file => {
-      if (file instanceof File) {
-        if (file.size > MAX_SIZE) {
-          alert(`${file.name} is larger than 2MB`);
-          return;
-        }
-        formData.append("images", file);
-      }
+      if (file instanceof File) formData.append("images", file);
     });
 
     formData.append("name", form.name);
@@ -109,106 +106,86 @@ const handleDrop = (e) => {
 
     try {
       if (id) {
-        // ✅ UPDATE
-        await axios.put(
-          `/planify/v1/plans/editPlan/${id}`,
-          formData,
-          { headers: { "Content-Type": "multipart/form-data" } }
-        );
-        alert("Plan updated successfully!");
+        await axios.put(`/planify/v1/plans/editPlan/${id}`, formData, { 
+            headers: { "Content-Type": "multipart/form-data" } 
+        });
+        toast.success("Plan updated successfully! ✨");
       } else {
-        // ✅ CREATE
-        await axios.post(
-          "/planify/v1/plans/createPlan",
-          formData,
-          { headers: { "Content-Type": "multipart/form-data" } }
-        );
-        alert("Plan created successfully!");
+        await axios.post("/planify/v1/plans/createPlan", formData, { 
+            headers: { "Content-Type": "multipart/form-data" } 
+        });
+        toast.success("Plan created successfully! 🚀");
       }
-
       navigate("/explore");
     } catch (err) {
       console.error("Submit error:", err);
-      alert("Something went wrong");
+      toast.error(err.response?.data?.message || "Something went wrong");
     }
   };
 
-
-  const [update , setUpdate] = React.useState(false) ;
-
-  const handleFileSelect = (e) => {
-
-    const files = Array.from(e.target.files);
-    setImages(prev => [...prev , ...files] )
-    const previewURLs = files.map(file =>
-        URL.createObjectURL(file)
-    );
-    setPreviews(prev => [...prev, ...previewURLs]);
-  
-  };
-
   return (
-    <div className='min-h-screen pb-10 w-full px-20 mt-5 flex justify-center relative'>
+    <div className='min-h-screen pb-10 w-full px-4 md:px-20 mt-5 flex justify-center relative overflow-x-hidden'>
       
-      <IoFastFoodOutline size={120} className='-rotate-45 absolute top-10 left-10 opacity-5' />
-      <TbBrandFunimation size={120} className='absolute top-72 left-24 opacity-5' />
-      <RiShoppingCart2Line size={120} className='absolute top-12 right-44 rotate-6 opacity-5' />
-      <LuNotebookPen size={120} className='absolute top-80 right-10 -rotate-12 opacity-5' />
-      <RiPlaneLine size={120} className='-rotate-12 absolute bottom-96 left-64 opacity-5' />
-      <MdOutlineVideoCameraBack size={120} className='rotate-45 absolute bottom-44 left-10 opacity-5' />
-      <TbPhoto size={120} className='rotate-12 absolute bottom-36 right-10 opacity-5' />
-      <BsCameraVideo size={120} className='rotate-12 absolute top-1/2 left-1/2 opacity-5' />
-      <BsStar size={120} className='-rotate-30 absolute top-28 left-1/4 opacity-5' />
-      <GrCalendar size={120} className='rotate-15 absolute bottom-1/3 left-1/3 opacity-5' />
-      <FaRegClock size={120} className='-rotate-15 absolute top-64 right-72 font-bold opacity-5' />
-      <MdSecurityUpdateGood size={120} className='rotate-0 absolute bottom-80 right-56 opacity-5' />
+      {/* Background Icons - Hidden on small screens for better readability */}
+      <div className='hidden md:block'>
+        <IoFastFoodOutline size={120} className='-rotate-45 absolute top-10 left-10 opacity-5' />
+        <TbBrandFunimation size={120} className='absolute top-72 left-24 opacity-5' />
+        <RiShoppingCart2Line size={120} className='absolute top-12 right-44 rotate-6 opacity-5' />
+        <LuNotebookPen size={120} className='absolute top-80 right-10 -rotate-12 opacity-5' />
+        <RiPlaneLine size={120} className='-rotate-12 absolute bottom-96 left-64 opacity-5' />
+        <MdOutlineVideoCameraBack size={120} className='rotate-45 absolute bottom-44 left-10 opacity-5' />
+        <TbPhoto size={120} className='rotate-12 absolute bottom-36 right-10 opacity-5' />
+        <BsCameraVideo size={120} className='rotate-12 absolute top-1/2 left-1/2 opacity-5' />
+        <BsStar size={120} className='-rotate-30 absolute top-28 left-1/4 opacity-5' />
+        <GrCalendar size={120} className='rotate-15 absolute bottom-1/3 left-1/3 opacity-5' />
+        <FaRegClock size={120} className='-rotate-15 absolute top-64 right-72 font-bold opacity-5' />
+        <MdSecurityUpdateGood size={120} className='rotate-0 absolute bottom-80 right-56 opacity-5' />
+      </div>
 
-      <div className='backdrop-blur-md bg-white/10 p-10 rounded-md w-1/2 h-full flex flex-col justify-center gap-4'>
-        <h2 className='text-xl text-left font-bold text-white'>Let's Planify your next Adventure!!</h2>
-          <p className='text-red-400 text-xs'> * indicates required fields  </p>
+      <div className='backdrop-blur-xl bg-white/10 p-6 md:p-10 rounded-xl w-full md:w-3/4 lg:w-1/2 h-full flex flex-col justify-center gap-4 border border-white/10 shadow-2xl z-10'>
+        <h2 className='text-xl md:text-2xl text-left font-bold text-white tracking-tight'>
+            {id ? "Update your Adventure" : "Let's Planify your next Adventure!!"}
+        </h2>
+        <p className='text-red-400 text-[10px] md:text-xs uppercase font-bold tracking-widest'> * indicates required fields </p>
 
-        <form onSubmit={handleSubmit}  className='h-full flex flex-col gap-5'>
+        <form onSubmit={handleSubmit} className='h-full flex flex-col gap-5'>
           
-          <div className='w-full flex flex-col gap-0'>
-            <p className='text-left m-0 p-0 ' >Plan Name<span className='text-red-400 '> *</span></p>
+          <div className='w-full flex flex-col gap-1'>
+            <p className='text-left text-sm font-medium text-zinc-300'>Plan Name<span className='text-red-400'> *</span></p>
             <input 
               type='text' 
-              name='name' 
               value={form.name}
               placeholder='Enter the plan title here' 
-              className='text-gray-300 p-2 border border-gray-300 bg-transparent rounded-md w-full'
+              className='text-white p-3 border border-white/20 bg-black/20 focus:bg-black/40 outline-none transition-all rounded-md w-full'
               required
-              onChange={(e)=>setForm({...form , name : e.target.value})}
+              onChange={(e)=>setForm({...form, name: e.target.value})}
             />
           </div>
 
-          <div className='w-full flex flex-col gap-0 mt-4 '>
-            <p className='text-left m-0 p-0 ' >Description</p>
+          <div className='w-full flex flex-col gap-1'>
+            <p className='text-left text-sm font-medium text-zinc-300'>Description</p>
             <textarea 
-              name='description' 
               value={form.description}
-              placeholder='Description' 
-              className='p-2 border border-gray-300 bg-transparent rounded-md w-full h-32'
-              onChange={(e)=>setForm({...form , description : e.target.value})}
+              placeholder='What are the details?' 
+              className='p-3 border border-white/20 bg-black/20 focus:bg-black/40 outline-none transition-all rounded-md w-full h-32 resize-none text-white'
+              onChange={(e)=>setForm({...form, description: e.target.value})}
               maxLength={300}
             />
-            <p className='text-right text-zinc-400 m-0 p-0'>{form.description.length}/300</p>
+            <p className='text-right text-[10px] text-zinc-400'>{form.description.length}/300</p>
           </div>
           
           <div>
-            <p className=' text-left m-0 p-0' >Select Category <span className='text-red-400 '> *</span></p>
-            <div className="p-2 bg-transparent rounded-md flex flex-wrap gap-2">
+            <p className='text-left text-sm font-medium text-zinc-300 mb-2'>Select Category <span className='text-red-400'> *</span></p>
+            <div className="flex flex-wrap gap-2">
               {categories.map((cat) => (
                 <div
                   key={cat}
-                  onClick={() => {setSelectedCategory(cat); setForm({...form , category : cat})}}
+                  onClick={() => {setSelectedCategory(cat); setForm({...form, category: cat})}}
                   className={`
-                    cursor-pointer px-2 py-1 rounded-full border
-                    transition-all duration-200 text-sm
-
+                    cursor-pointer px-4 py-1.5 rounded-full border transition-all duration-200 text-xs md:text-sm
                     ${selectedCategory === cat 
-                      ? "bg-[#f49494]  shadow-md font-bold scale-105" 
-                      : "bg-transparent text-white"} 
+                      ? "bg-red-400 border-red-400 text-white font-bold shadow-lg" 
+                      : "bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10"} 
                   `}
                 >
                   {cat}
@@ -217,86 +194,83 @@ const handleDrop = (e) => {
             </div>
           </div>
           
-          <div className='w-full flex gap-2 '>
-            <div className='flex flex-col w-1/2'>
-            <p className='text-left m-0 p-0  ' >Creation Date<span className='text-red-400 '> *</span></p>
-            <input 
-              type='date' 
-              name='createdAt' 
-              value={form.createdAt}
-              className='p-2 border border-gray-300 bg-transparent rounded-md'
-              onChange={(e)=>setForm({...form , createdAt : e.target.value})}
-            />
-            <div className='flex items-center gap-1 justify-start'>
-              <input 
-              type = 'checkbox'
-              name = 'today date'
-              className='rounded-md'
-              onChange={(e)=>setForm({...form , createdAt : new Date().toISOString().split('T')[0]})}
-            /> Use today's date
+          {/* RESPONSIVE: Stack dates on mobile */}
+          <div className='w-full flex flex-col md:flex-row gap-4'>
+            <div className='flex flex-col w-full md:w-1/2 gap-1'>
+                <p className='text-left text-sm font-medium text-zinc-300'>Creation Date<span className='text-red-400'> *</span></p>
+                <input 
+                    type='date' 
+                    value={form.createdAt}
+                    required
+                    className='p-3 border border-white/20 bg-black/20 rounded-md text-white outline-none'
+                    onChange={(e)=>setForm({...form, createdAt: e.target.value})}
+                />
+                <label className='flex items-center gap-2 mt-1 text-xs text-zinc-400 cursor-pointer'>
+                    <input 
+                        type='checkbox'
+                        className='accent-red-400'
+                        onChange={(e)=>setForm({...form, createdAt: new Date().toISOString().split('T')[0]})}
+                    /> Use today's date
+                </label>
             </div>
-          </div>
 
-          <div className='flex flex-col w-1/2'>
-            <p className='text-left m-0 p-0  ' >Completion Date</p>
-            <input 
-              type='date' 
-              value={form.completedAt}
-              name='completedAt' 
-              className='p-2 border border-gray-300 bg-transparent rounded-md'
-              onChange={(e)=>setForm({...form , completedAt : e.target.value})}
-            />
-            <div className='flex items-center gap-1 justify-start'>
-              <input 
-              type = 'checkbox'
-              name = 'today date'
-              className='rounded-md'
-              onChange={(e)=>setForm({...form , completedAt : new Date().toISOString().split('T')[0]})}
-            /> Use today's date
+            <div className='flex flex-col w-full md:w-1/2 gap-1'>
+                <p className='text-left text-sm font-medium text-zinc-300'>Completion Date</p>
+                <input 
+                    type='date' 
+                    value={form.completedAt}
+                    className='p-3 border border-white/20 bg-black/20 rounded-md text-white outline-none'
+                    onChange={(e)=>setForm({...form, completedAt: e.target.value})}
+                />
+                <label className='flex items-center gap-2 mt-1 text-xs text-zinc-400 cursor-pointer'>
+                    <input 
+                        type='checkbox'
+                        className='accent-red-400'
+                        onChange={(e)=>setForm({...form, completedAt: new Date().toISOString().split('T')[0]})}
+                    /> Use today's date
+                </label>
             </div>
-          </div>
           </div>
           
           <div>
-            <p className='text-left m-0 p-0' >Upload Images</p>
+            <p className='text-left text-sm font-medium text-zinc-300 mb-2'>Upload Images</p>
               <input 
-                type="file" 
-                multiple
-                id="fileInput"
-                className="hidden"
+                type="file" multiple id="fileInput" className="hidden"
                 onChange={handleFileSelect}
               />
-
               <div
                 onClick={() => document.getElementById("fileInput").click()}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
-                className="text-zinc-300 w-full h-40 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center"
+                className="text-zinc-400 w-full h-32 border-2 border-dashed border-white/20 hover:border-white/40 hover:bg-white/5 transition-all rounded-xl flex flex-col items-center justify-center cursor-pointer text-xs p-4 text-center gap-2"
               >
-                Drag and drop an image here, or click to select a file
+                <TbPhoto size={30} className="opacity-50" />
+                Drag & drop or click to upload
               </div>
           </div>
+
           <div className="flex gap-2 flex-wrap">
             {previews.map((src, i) => (
-              <img
-                key={i}
-                src={src}
-                className="w-10 h-10 object-cover rounded"
-              />
+              <img key={i} src={src} className="w-12 h-12 object-cover rounded-md border border-white/20" />
             ))}
           </div>   
 
-          <div>
-            <input checked={form.isDone} name='isDone' onChange={(e)=>setForm({...form , isDone : e.target.checked})} type='checkbox' className='mt-4' /> Tick this box if this plan is already completed.
-          </div>
+          <label className='flex items-center gap-3 text-sm text-zinc-300 cursor-pointer mt-2'>
+            <input 
+                checked={form.isDone} 
+                onChange={(e)=>setForm({...form, isDone: e.target.checked})} 
+                type='checkbox' 
+                className='w-4 h-4 accent-green-500' 
+            /> 
+            Mark as completed
+          </label>
 
-          <Button  type='submit' text={id?'Update Plan':'Create Plan'} className='mt-4 w-1/3' />
-          {/* <p className='text-red-400 text-xs'> * indicates required fields  </p> */}
+          <div className='mt-4'>
+            <Button type='submit' text={id ? 'Update Plan' : 'Create Plan'} />
+          </div>
         </form>
       </div>
-      
     </div>
-
   )
 }
 
