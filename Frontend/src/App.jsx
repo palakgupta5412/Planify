@@ -10,7 +10,7 @@ import Login from './pages/Login.jsx'
 function App() {
   
   return (
-      <div className={`relative text-[#FAE5D8] font-${"pt-sans-regular"} bg-fixed backdrop-blur-3xl bg-gradient-to-b from-[#522959] via-[#824D69] to-[#180018] flex flex-col w-full overflow-hidden`}>
+      <div className={`relative text-[#FAE5D8] font-${"pt-sans-regular"} bg-fixed backdrop-blur-3xl bg-gradient-to-b from-black via-blue-950 to-black flex flex-col w-full overflow-hidden`}>
         <Navbar />
         <Routing />
       </div>
