@@ -55,7 +55,7 @@ const Completed = () => {
             <div className='h-[3px] bg-white/30 w-full rounded-full'>
                 <div 
                     style={{ width: `${percentage}%` }} 
-                    className={`transition-all duration-700 ease-in h-[3px] bg-[#2A114B] flex justify-end relative rounded-full`}
+                    className={`transition-all duration-700 ease-in h-[3px] bg-[#ffffff] flex justify-end relative rounded-full`}
                 >
                     {/* Icon position tweaked to be absolutely safe */}
                     <div className='absolute -top-[13px] -right-[10px] animate-glow text-2xl h-8 w-8 flex items-center justify-center glow rounded-full text-[#2A114B] bg-white shadow-sm'>
