@@ -36,6 +36,7 @@ const Navbar = () => {
 
             <div className='hidden md:flex gap-10 items-center font-medium text-sm tracking-wide uppercase'>
                 <NavLink to="/" className={({ isActive }) => `transition-colors duration-300 hover:text-white ${isActive ? "text-white" : "text-zinc-400"}`}>Home</NavLink>
+                <NavLink to='/explore' className={({ isActive }) => `transition-colors duration-300 hover:text-white ${isActive ? "text-white" : "text-zinc-400"}`}>Explore</NavLink>
                 <NavLink to="/gallery" className={({ isActive }) => `transition-colors duration-300 hover:text-white ${isActive ? "text-white" : "text-zinc-400"}`}>Gallery</NavLink>
                 <NavLink to="/add" className={({ isActive }) => `transition-colors duration-300 hover:text-white ${isActive ? "text-white" : "text-zinc-400"}`}>Add Plan</NavLink>
                 <NavLink to="/calendar" className={({ isActive }) => `transition-all duration-300 hover:scale-125 ${isActive ? "text-red-400" : "text-zinc-400 hover:text-red-400"}`}><LuCalendarCheck size={22}/></NavLink>
